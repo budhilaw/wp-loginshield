@@ -98,6 +98,14 @@ When enabled, the login tracking feature records all login attempts to your Word
 
 While Login Tracking records actual login attempts (when someone submits the login form), Access Monitoring tracks every attempt to even view the login page. This gives you visibility into reconnaissance activities and potential attackers before they even try to log in. It captures IP address, timestamp, referrer URL, and whether the IP is whitelisted.
 
+= How exactly does the custom login URL work? =
+
+When you set a custom login URL (e.g., "my-login"), accessing yourdomain.com/my-login will redirect you to yourdomain.com/wp-login.php?wls-token=my-login. This approach sets a cookie valid for one hour. While this cookie is active, you can directly access wp-login.php without using the custom path.
+
+For security, any direct attempt to access wp-admin or wp-login.php by non-authenticated users will be redirected to a 404 Not Found page, effectively hiding these paths from potential attackers. Only users who know your custom login path can access the login screen.
+
+To test if the protection is working correctly, use a private browsing window which won't have the access cookie stored.
+
 = How many login attempts are saved? =
 
 The plugin stores up to 500 most recent login attempts to prevent your database from becoming too large.
@@ -135,6 +143,9 @@ Yes, the plugin works with WordPress Multisite installations.
 * Added additional details to login tracking display
 * Fixed various bugs and improved stability
 * Updated documentation and branding
+* Improved login URL handling for better plugin compatibility
+* Added cookie-based authorization for login page access
+* Enhanced security with 404 redirects for direct access to wp-admin or wp-login.php
 
 = 1.0.0 =
 * Initial release with custom login path feature

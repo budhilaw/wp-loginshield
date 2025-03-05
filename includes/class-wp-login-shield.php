@@ -114,8 +114,8 @@ class WP_LoginShield {
         // Filter to change login URL
         add_filter('site_url', array($this, 'change_login_url'), 10, 4);
         
-        // Hook to block wp-login.php access
-        add_action('init', array($this, 'block_wp_login'));
+        // Hook to block wp-login.php access - hook as early as possible
+        add_action('plugins_loaded', array($this, 'block_wp_login'), 1);
         
         // Add rewrite rules
         add_action('init', array($this, 'add_rewrite_rules'));
@@ -971,22 +971,20 @@ class WP_LoginShield {
     public function block_wp_login() {
         global $pagenow;
         
-        $request_uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        // Get request information
+        $request_uri = $_SERVER['REQUEST_URI'];
+        $request_path = parse_url($request_uri, PHP_URL_PATH);
+        $request_path = trim($request_path, '/');
+        $cookie_name = 'wp_loginshield_access';
+        $cookie_expiration = 3600; // 1 hour in seconds
         
-        // If someone is trying to access wp-login.php directly
-        if ($pagenow == 'wp-login.php' && trim($request_uri, '/') != $this->login_path && !isset($_GET['action']) && !isset($_GET['wp-loginshield'])) {
-            // Record the access attempt if monitoring is enabled
-            if ($this->login_access_monitoring_enabled) {
-                $this->record_login_page_access();
-            }
-            
-            // Block access to wp-login.php
-            wp_redirect(home_url('404'));
-            exit;
+        // Skip all checks if user is already logged in and not trying to access the login page
+        if (is_user_logged_in() && !strpos($request_uri, 'wp-login.php') && $request_path !== 'wp-admin' && strpos($request_path, 'wp-admin/') !== 0) {
+            return;
         }
         
-        // If someone is accessing our custom login URL
-        if (!is_admin() && (trim($request_uri, '/') == $this->login_path)) {
+        // If someone is accessing the custom login path, redirect to wp-login.php with token
+        if (!is_admin() && ($request_path == $this->login_path)) {
             // Check IP whitelist if enabled
             if ($this->ip_whitelist_enabled) {
                 $this->check_ip_whitelist();
@@ -997,12 +995,69 @@ class WP_LoginShield {
                 $this->record_login_page_access();
             }
             
-            // Set a flag
-            $_GET['custom-login'] = 1;
+            // Set cookie for 1 hour to allow access to wp-login.php
+            setcookie(
+                $cookie_name, 
+                '1', 
+                time() + $cookie_expiration, 
+                COOKIEPATH, 
+                COOKIE_DOMAIN,
+                is_ssl(),
+                true
+            );
             
-            // Include the wp-login.php file
-            require_once ABSPATH . 'wp-login.php';
+            // Redirect to wp-login.php with token
+            wp_safe_redirect(site_url('wp-login.php?wls-token=' . $this->login_path));
             exit;
+        }
+        
+        // Handle direct access to wp-admin (redirect to 404 if not logged in)
+        if ($request_path == 'wp-admin' || strpos($request_path, 'wp-admin/') === 0) {
+            if (!is_user_logged_in()) {
+                // Record the access attempt if monitoring is enabled
+                if ($this->login_access_monitoring_enabled) {
+                    $this->record_login_page_access();
+                }
+                
+                // Block access by redirecting to 404
+                wp_redirect(home_url('404'));
+                exit;
+            }
+        }
+        
+        // Handle direct access to wp-login.php
+        if (strpos($request_uri, 'wp-login.php') !== false) {
+            // Allow access if:
+            // 1. The wls-token parameter is present and matches the login path
+            // 2. The access cookie is set
+            // 3. Special WordPress actions like reset password are being performed
+            $has_valid_token = isset($_GET['wls-token']) && $_GET['wls-token'] == $this->login_path;
+            $has_valid_cookie = isset($_COOKIE[$cookie_name]) && $_COOKIE[$cookie_name] == '1';
+            $has_special_action = isset($_GET['action']) && in_array($_GET['action'], array('postpass', 'logout', 'lostpassword', 'retrievepassword', 'resetpass', 'rp', 'register'));
+            
+            if (!$has_valid_token && !$has_valid_cookie && !$has_special_action) {
+                // Record the access attempt if monitoring is enabled
+                if ($this->login_access_monitoring_enabled) {
+                    $this->record_login_page_access();
+                }
+                
+                // Block access to wp-login.php
+                wp_redirect(home_url('404'));
+                exit;
+            }
+            
+            // If token is present, refresh the cookie
+            if ($has_valid_token) {
+                setcookie(
+                    $cookie_name, 
+                    '1', 
+                    time() + $cookie_expiration, 
+                    COOKIEPATH, 
+                    COOKIE_DOMAIN,
+                    is_ssl(),
+                    true
+                );
+            }
         }
     }
 
@@ -1010,17 +1065,9 @@ class WP_LoginShield {
      * Add custom rewrite rules
      */
     public function add_rewrite_rules() {
-        add_rewrite_rule(
-            '^' . $this->login_path . '/?$',
-            'wp-login.php',
-            'top'
-        );
-        
-        add_rewrite_rule(
-            '^' . $this->login_path . '/(.+)/?$',
-            'wp-login.php?action=$1',
-            'top'
-        );
+        // With our new approach, we're handling the redirect directly in block_wp_login
+        // These rewrite rules are no longer needed but kept for backward compatibility
+        flush_rewrite_rules();
     }
 
     /**
