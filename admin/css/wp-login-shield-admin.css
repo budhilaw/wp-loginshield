@@ -1,0 +1,138 @@
+/**
+ * Admin CSS for WP LoginShield
+ */
+
+.wrap h1 {
+    margin-bottom: 20px;
+}
+
+#wp_login_shield {
+    width: 300px;
+}
+
+.description code {
+    background-color: #f7f7f7;
+    padding: 5px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+#preview-slug {
+    font-weight: bold;
+    color: #0073aa;
+}
+
+/* Settings Form */
+.form-table th {
+    padding: 20px 10px 20px 0;
+    width: 200px;
+}
+
+.form-table td {
+    padding: 15px 10px;
+}
+
+/* Add a small info box */
+.wp-loginshield-info {
+    background-color: #fff;
+    border-left: 4px solid #00a0d2;
+    box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1);
+    margin: 20px 0;
+    padding: 12px;
+}
+
+.wp-loginshield-info p {
+    margin: 0.5em 0;
+    padding: 2px;
+}
+
+/* Tab navigation */
+.nav-tab-wrapper {
+    margin-bottom: 20px;
+}
+
+/* IP Ban Page */
+.widefat {
+    margin-top: 15px;
+}
+
+.widefat th {
+    font-weight: 600;
+}
+
+.banned-ip-table td {
+    vertical-align: middle;
+}
+
+.banned-ip-table .column-actions {
+    text-align: right;
+}
+
+.banned-ip-count {
+    display: inline-block;
+    background-color: #d63638;
+    color: #fff;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    text-align: center;
+    line-height: 24px;
+    margin-left: 8px;
+    font-size: 12px;
+}
+
+/* Login Tracking Page */
+.login-attempts-table {
+    table-layout: fixed;
+}
+
+.login-attempts-table th:first-child {
+    width: 150px;
+}
+
+.login-attempts-table th:nth-child(2) {
+    width: 120px;
+}
+
+.login-attempts-table th:nth-child(3) {
+    width: 120px;
+}
+
+.login-attempts-table th:nth-child(4) {
+    width: 80px;
+}
+
+.login-status {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.login-success {
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+.login-failed {
+    background-color: #f8d7da;
+    color: #842029;
+}
+
+.user-agent-cell {
+    word-break: break-word;
+    max-width: 300px;
+    font-size: 12px;
+    color: #666;
+}
+
+/* Tablenav for export options */
+.tablenav {
+    margin: 15px 0;
+}
+
+.alignleft.actions {
+    margin-bottom: 10px;
+} 
