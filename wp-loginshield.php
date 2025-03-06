@@ -3,7 +3,7 @@
  * Plugin Name: WP LoginShield
  * Plugin URI: https://budhilaw.com/plugins/wp-loginshield
  * Description: Enhance WordPress security by customizing the login path, blocking brute force attacks, and monitoring login attempts.
- * Version: 1.0.1
+ * Version: 1.0.2
  * Author: Budhilaw
  * Author URI: https://budhilaw.com
  * License: GPL v2 or later
@@ -21,6 +21,62 @@ if (!defined('WPINC')) {
 if (!function_exists('wp_loginshield_protect_login')) {
     function wp_loginshield_protect_login() {
         $request_uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+        
+        // Early IP ban check if it's enabled in the database
+        $ip_ban_enabled = get_option('wp_login_shield_enable_ip_ban', 0);
+        if ($ip_ban_enabled) {
+            // Get banned IPs
+            $banned_ips = get_option('wp_login_shield_banned_ips', array());
+            
+            // Get visitor IP using various methods
+            $ip_keys = array(
+                'HTTP_CLIENT_IP',
+                'HTTP_X_FORWARDED_FOR',
+                'HTTP_X_FORWARDED',
+                'HTTP_X_CLUSTER_CLIENT_IP',
+                'HTTP_FORWARDED_FOR',
+                'HTTP_FORWARDED',
+                'REMOTE_ADDR'
+            );
+            
+            $visitor_ip = '';
+            foreach ($ip_keys as $key) {
+                if (array_key_exists($key, $_SERVER) === true) {
+                    foreach (explode(',', $_SERVER[$key]) as $ip) {
+                        $ip = trim($ip);
+                        if (filter_var($ip, FILTER_VALIDATE_IP) !== false) {
+                            $visitor_ip = $ip;
+                            break 2;
+                        }
+                    }
+                }
+            }
+            
+            // Check if IP is banned
+            if (!empty($visitor_ip) && isset($banned_ips[$visitor_ip])) {
+                $max_attempts = get_option('wp_login_shield_max_login_attempts', 3);
+                
+                // First check: is this IP explicitly marked as banned?
+                $explicitly_banned = isset($banned_ips[$visitor_ip]['is_banned']) && $banned_ips[$visitor_ip]['is_banned'] === true;
+                
+                // Second check: check attempts count
+                $too_many_attempts = false;
+                if (isset($banned_ips[$visitor_ip]) && isset($banned_ips[$visitor_ip]['attempts']) && is_numeric($banned_ips[$visitor_ip]['attempts']) && $banned_ips[$visitor_ip]['attempts'] >= $max_attempts) {
+                    $too_many_attempts = true;
+                }
+                
+                // Block if either explicitly banned or too many attempts
+                if ($explicitly_banned || $too_many_attempts) {
+                    // Block the banned IP with a 403
+                    header('HTTP/1.1 403 Forbidden');
+                    echo '<!DOCTYPE html><html><head><title>403 Forbidden</title></head><body>';
+                    echo '<h1>Access Denied</h1>';
+                    echo '<p>Your IP has been temporarily banned due to too many failed login attempts.</p>';
+                    echo '</body></html>';
+                    exit;
+                }
+            }
+        }
         
         // Check if this is a direct attempt to access wp-login.php
         if (strpos($request_uri, 'wp-login.php') !== false) {
@@ -77,24 +133,5 @@ require_once WP_LOGINSHIELD_PLUGIN_DIR . 'includes/class-wp-login-shield.php';
 function run_wp_login_shield() {
     $plugin = new WP_LoginShield();
     $plugin->run();
-    
-    // Add JavaScript translations for the admin
-    add_action('admin_enqueue_scripts', 'wp_loginshield_localize_script');
 }
-
-/**
- * Add JavaScript translations
- */
-function wp_loginshield_localize_script($hook) {
-    if ('settings_page_wp-loginshield' != $hook) {
-        return;
-    }
-    
-    wp_localize_script('wp-loginshield-admin', 'wpLoginShieldAdmin', array(
-        'confirmUnban' => __('Are you sure you want to unban this IP address?', 'wp-loginshield'),
-        'confirmClearAll' => __('Are you sure you want to clear all IP bans? This action cannot be undone.', 'wp-loginshield'),
-        'confirmClearAllAttempts' => __('Are you sure you want to clear all login attempt records? This action cannot be undone.', 'wp-loginshield')
-    ));
-}
-
 run_wp_login_shield(); 

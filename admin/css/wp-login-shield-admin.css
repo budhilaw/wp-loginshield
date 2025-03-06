@@ -46,6 +46,83 @@
     padding: 2px;
 }
 
+/* Card Styling */
+.wp-login-shield-card {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+    margin-bottom: 20px;
+}
+
+.wp-login-shield-card-header {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid #c3c4c7;
+    background: #f0f0f1;
+}
+
+.wp-login-shield-card-header h2 {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.4;
+    display: flex;
+    align-items: center;
+}
+
+.wp-login-shield-card-header h2 .dashicons {
+    margin-right: 8px;
+    color: #2271b1;
+}
+
+.wp-login-shield-card-header .handlediv {
+    display: inline-block;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: #72777c;
+    width: 36px;
+    height: 36px;
+    position: relative;
+    text-align: center;
+    border-radius: 50%;
+    outline: none;
+}
+
+.wp-login-shield-card-header .handlediv:hover {
+    background-color: #e0e0e0;
+    color: #2271b1;
+}
+
+.wp-login-shield-card-header .handlediv .toggle-indicator:before {
+    content: "\f142";
+    display: inline-block;
+    font: normal 20px/1 dashicons;
+    speak: never;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-decoration: none !important;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.wp-login-shield-card-header .handlediv[aria-expanded="false"] .toggle-indicator:before {
+    content: "\f140";
+}
+
+.wp-login-shield-card-body {
+    padding: 15px;
+}
+
+.wp-login-shield-card-body.closed {
+    display: none;
+}
+
 /* Tab navigation */
 .nav-tab-wrapper {
     margin-bottom: 20px;
@@ -135,4 +212,287 @@
 
 .alignleft.actions {
     margin-bottom: 10px;
+}
+
+/* Modern Pagination Styling */
+.pagination-wrapper {
+    margin-top: 15px !important;
+    text-align: center !important;
+}
+
+.pagination-wrapper .pagination {
+    display: inline-block !important;
+    padding: 0 !important;
+    /* Adding container styles to match the second image */
+    border: 1px solid #dcdcde !important;
+    border-radius: 4px !important;
+    overflow: hidden !important;
+}
+
+.pagination ul {
+    display: flex !important;
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    flex-wrap: nowrap !important;
+    justify-content: center !important;
+}
+
+.pagination ul li {
+    margin: 0 !important; /* Remove margin between items */
+    padding: 0 !important;
+    line-height: 1 !important;
+    display: inline-block !important;
+}
+
+.pagination .page-numbers {
+    display: inline-flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    min-width: 40px !important;
+    height: 40px !important;
+    padding: 0 !important;
+    font-size: 14px !important;
+    line-height: 1 !important;
+    color: #3c434a !important;
+    text-decoration: none !important;
+    background-color: #ffffff !important;
+    border: none !important;
+    border-right: 1px solid #dcdcde !important;
+    border-radius: 0 !important;
+    transition: all 0.2s ease-in-out !important;
+    box-sizing: border-box !important;
+}
+
+/* Remove border from the last item */
+.pagination ul li:last-child .page-numbers {
+    border-right: none !important;
+}
+
+.pagination .page-numbers:hover {
+    background-color: #f0f0f1 !important;
+}
+
+.pagination .page-numbers.current {
+    font-weight: 600 !important;
+    color: #3c434a !important;
+    background-color: #f0f0f1 !important; /* Light gray background for current page */
+}
+
+.pagination .page-numbers.dots {
+    background-color: #ffffff !important;
+    color: #3c434a !important;
+}
+
+.pagination .page-numbers.next,
+.pagination .page-numbers.prev {
+    min-width: 40px !important;
+}
+
+.pagination .page-numbers .dashicons {
+    font-size: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+    vertical-align: middle !important;
+}
+
+/* Page navigation styling */
+.pagination ul {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.pagination ul li {
+    margin: 0 2px;
+}
+
+/* About Page Styling */
+.wp-login-shield-about-page {
+    max-width: 1200px !important;
+    margin: 20px 0 !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif !important;
+}
+
+.wp-login-shield-about-page h1 {
+    font-size: 32px !important;
+    font-weight: 600 !important;
+    margin-bottom: 25px !important;
+    color: #1d2327 !important;
+    padding-bottom: 15px !important;
+    border-bottom: 1px solid #f0f0f1 !important;
+}
+
+.wp-login-shield-about-page .wp-login-shield-card {
+    background: #fff !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+    margin-bottom: 25px !important;
+    border: 1px solid #e2e4e7 !important;
+    overflow: hidden !important;
+    transition: box-shadow 0.2s ease-in-out !important;
+}
+
+.wp-login-shield-about-page .wp-login-shield-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+}
+
+.wp-login-shield-card-header {
+    padding: 20px 25px !important;
+    background: #f8f9fa !important;
+    border-bottom: 1px solid #e2e4e7 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+}
+
+.wp-login-shield-card-header h2 {
+    margin: 0 !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    color: #1d2327 !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.wp-login-shield-card-header h2 .dashicons {
+    margin-right: 10px !important;
+    color: #2271b1 !important;
+    font-size: 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+}
+
+.wp-login-shield-card-body {
+    padding: 25px !important;
+    color: #50575e !important;
+    line-height: 1.7 !important;
+}
+
+/* Plugin Information Section */
+.plugin-info-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-bottom: 15px !important;
+}
+
+.plugin-info-table tr {
+    border-bottom: 1px solid #f0f0f1 !important;
+}
+
+.plugin-info-table tr:last-child {
+    border-bottom: none !important;
+}
+
+.plugin-info-table th {
+    text-align: left !important;
+    padding: 12px 0 !important;
+    width: 150px !important;
+    font-weight: 600 !important;
+    color: #1d2327 !important;
+    vertical-align: top !important;
+}
+
+.plugin-info-table td {
+    padding: 12px 0 !important;
+    vertical-align: top !important;
+}
+
+/* Features Section */
+.features-list {
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+}
+
+.features-list li {
+    margin-bottom: 15px !important;
+    padding-left: 28px !important;
+    position: relative !important;
+}
+
+.features-list li:last-child {
+    margin-bottom: 0 !important;
+}
+
+.features-list li:before {
+    content: "\f147" !important;
+    font-family: dashicons !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 2px !important;
+    color: #46b450 !important;
+    font-size: 20px !important;
+}
+
+.features-list li strong {
+    display: block !important;
+    font-weight: 600 !important;
+    margin-bottom: 3px !important;
+    color: #1d2327 !important;
+}
+
+/* Usage Tips Section */
+.usage-tips-list {
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+}
+
+.usage-tips-list li {
+    margin-bottom: 20px !important;
+    padding-left: 28px !important;
+    position: relative !important;
+}
+
+.usage-tips-list li:last-child {
+    margin-bottom: 0 !important;
+}
+
+.usage-tips-list li:before {
+    content: "\f348" !important;
+    font-family: dashicons !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 2px !important;
+    color: #2271b1 !important;
+    font-size: 20px !important;
+}
+
+.usage-tips-list li strong {
+    display: block !important;
+    font-weight: 600 !important;
+    margin-bottom: 5px !important;
+    color: #1d2327 !important;
+}
+
+.code-example {
+    background: #f6f7f7 !important;
+    border: 1px solid #dcdcde !important;
+    border-radius: 4px !important;
+    padding: 10px 15px !important;
+    font-family: monospace !important;
+    margin: 10px 0 !important;
+    display: inline-block !important;
+}
+
+/* Footer styling */
+.wp-login-shield-footer {
+    text-align: center !important;
+    margin-top: 30px !important;
+    padding-top: 20px !important;
+    border-top: 1px solid #e2e4e7 !important;
+    color: #646970 !important;
+    font-size: 13px !important;
+}
+
+.wp-login-shield-footer a {
+    color: #2271b1 !important;
+    text-decoration: none !important;
+}
+
+.wp-login-shield-footer a:hover {
+    color: #135e96 !important;
+    text-decoration: underline !important;
 } 
