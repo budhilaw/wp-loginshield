@@ -249,6 +249,16 @@ class WP_LoginShield {
             add_option('wp_login_shield_whitelist_ips', array());
         }
         
+        // Set redirect slug if not exists
+        if (!get_option('wp_login_shield_redirect_slug')) {
+            add_option('wp_login_shield_redirect_slug', '404');
+        }
+        
+        // Set custom redirect enabled option if not exists
+        if (!get_option('wp_login_shield_enable_custom_redirect')) {
+            add_option('wp_login_shield_enable_custom_redirect', 0);
+        }
+        
         // Make sure WordPress knows about the rewrite rules
         flush_rewrite_rules();
     }

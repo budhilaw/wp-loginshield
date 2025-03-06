@@ -117,6 +117,28 @@ if (!function_exists('wp_loginshield_protect_login')) {
             return;
         }
         
+        // Get custom redirect slug if set, otherwise use 404
+        $redirect_slug = get_option('wp_login_shield_redirect_slug', '404');
+        $enable_custom_redirect = get_option('wp_login_shield_enable_custom_redirect', 0);
+        
+        // Check if custom redirect is enabled and a custom slug is set
+        if ($enable_custom_redirect && $redirect_slug !== '404') {
+            // Construct the redirect URL without WordPress functions
+            $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http';
+            $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
+            
+            // Extract the path part for WordPress installations in subdirectories
+            $path_parts = explode('/', $_SERVER['SCRIPT_NAME']);
+            array_pop($path_parts); // Remove the filename part
+            $path = implode('/', $path_parts);
+            $path = $path ? $path . '/' : '/'; // Ensure trailing slash
+            
+            $redirect_url = $protocol . '://' . $host . $path . $redirect_slug;
+            
+            header('Location: ' . $redirect_url);
+            exit;
+        }
+        
         // If we get here, block access with direct redirect (no WordPress functions needed)
         header('HTTP/1.1 404 Not Found');
         header('Status: 404 Not Found');

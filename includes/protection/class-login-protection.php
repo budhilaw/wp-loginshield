@@ -26,6 +26,20 @@ class WP_LoginShield_Protection {
     protected $login_path;
 
     /**
+     * The redirect slug to use for blocked requests
+     *
+     * @var string
+     */
+    protected $redirect_slug = '404';
+
+    /**
+     * Whether to use custom redirect or default 404
+     *
+     * @var bool
+     */
+    protected $enable_custom_redirect = false;
+
+    /**
      * IP whitelist enabled
      *
      * @var bool
@@ -68,6 +82,8 @@ class WP_LoginShield_Protection {
      */
     public function __construct($ip_management = null, $monitoring = null) {
         $this->login_path = get_option('wp_login_shield', $this->default_path);
+        $this->redirect_slug = get_option('wp_login_shield_redirect_slug', '404');
+        $this->enable_custom_redirect = get_option('wp_login_shield_enable_custom_redirect', 0);
         $this->ip_whitelist_enabled = get_option('wp_login_shield_enable_ip_whitelist', 0);
         $this->login_access_monitoring_enabled = get_option('wp_login_shield_enable_login_access_monitoring', 0);
         $this->custom_login_enabled = get_option('wp_login_shield_enable_custom_login', 1);
@@ -187,7 +203,7 @@ class WP_LoginShield_Protection {
             exit;
         }
         
-        // Handle direct access to wp-admin (redirect to 404 if not logged in)
+        // Handle direct access to wp-admin (redirect to custom page or 404 if not logged in)
         if ($request_path == 'wp-admin' || strpos($request_path, 'wp-admin/') === 0) {
             if (!is_user_logged_in()) {
                 // Record the access attempt if monitoring is enabled
@@ -202,9 +218,16 @@ class WP_LoginShield_Protection {
                     }
                 }
                 
-                // Block access by redirecting to 404
-                wp_redirect(home_url('404'));
-                exit;
+                // Check if custom redirect is enabled and a custom slug is set
+                if ($this->enable_custom_redirect && $this->redirect_slug !== '404') {
+                    // Block access by redirecting to custom slug
+                    wp_redirect(home_url($this->redirect_slug));
+                    exit;
+                } else {
+                    // Use default 404 redirect
+                    wp_redirect(home_url('404'));
+                    exit;
+                }
             }
         }
         
@@ -231,9 +254,16 @@ class WP_LoginShield_Protection {
                     }
                 }
                 
-                // Block access to wp-login.php
-                wp_redirect(home_url('404'));
-                exit;
+                // Check if custom redirect is enabled and a custom slug is set
+                if ($this->enable_custom_redirect && $this->redirect_slug !== '404') {
+                    // Block access by redirecting to custom slug
+                    wp_redirect(home_url($this->redirect_slug));
+                    exit;
+                } else {
+                    // Use default 404 redirect
+                    wp_redirect(home_url('404'));
+                    exit;
+                }
             }
             
             // If token is present, refresh the cookie

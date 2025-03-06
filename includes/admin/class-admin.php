@@ -102,6 +102,8 @@ class WP_LoginShield_Admin {
         register_setting('wp_login_shield_settings', 'wp_login_shield_whitelist_ips', array($this, 'sanitize_whitelist_ips'));
         register_setting('wp_login_shield_settings', 'wp_login_shield_enable_login_access_monitoring');
         register_setting('wp_login_shield_settings', 'wp_login_shield_max_login_attempts', 'intval');
+        register_setting('wp_login_shield_settings', 'wp_login_shield_redirect_slug', array($this, 'sanitize_redirect_slug'));
+        register_setting('wp_login_shield_settings', 'wp_login_shield_enable_custom_redirect', 'intval');
         
         add_settings_section(
             'wp_login_shield_section',
@@ -114,6 +116,14 @@ class WP_LoginShield_Admin {
             'wp_login_shield',
             'Custom Login Path',
             array($this, 'login_path_field_callback'),
+            'wp_login_shield_settings',
+            'wp_login_shield_section'
+        );
+        
+        add_settings_field(
+            'wp_login_shield_redirect_settings',
+            'Redirect Settings',
+            array($this, 'redirect_settings_field_callback'),
             'wp_login_shield_settings',
             'wp_login_shield_section'
         );
@@ -191,6 +201,45 @@ class WP_LoginShield_Admin {
         <p class="description">
             When enabled, the standard wp-login.php page will be protected. Enter the custom path for the login page (e.g., "secret-login" would make your login page <?php echo esc_html(site_url('/secret-login')); ?>)
         </p>
+        <?php
+    }
+
+    /**
+     * Redirect settings field callback
+     */
+    public function redirect_settings_field_callback() {
+        $redirect_slug = get_option('wp_login_shield_redirect_slug', '404');
+        $enable_custom_redirect = get_option('wp_login_shield_enable_custom_redirect', 0);
+        $enable_custom_login = get_option('wp_login_shield_enable_custom_login', 1);
+        ?>
+        <label>
+            <input type="checkbox" name="wp_login_shield_enable_custom_redirect" value="1" <?php checked($enable_custom_redirect, 1); ?> <?php disabled($enable_custom_login, 0); ?>>
+            Enable custom redirect for unauthorized login attempts
+        </label>
+        <p>
+            <label for="wp_login_shield_redirect_slug">Redirect Slug:</label>
+            <input type="text" id="wp_login_shield_redirect_slug" name="wp_login_shield_redirect_slug" value="<?php echo esc_attr($redirect_slug); ?>" class="regular-text" <?php disabled(($enable_custom_login && $enable_custom_redirect) ? 0 : 1, 1); ?>>
+        </p>
+        <p class="description">
+            Enter the slug for where users should be redirected when they try to access wp-login.php directly.<br>
+            Default is "404" which shows a 404 page. You can enter a post or page slug (e.g., "no-access") to redirect to that content instead.<br>
+            When custom redirect is disabled, users will see a standard 404 page.
+        </p>
+        <script type="text/javascript">
+            jQuery(document).ready(function($) {
+                // Handle enable/disable of redirect slug field based on checkbox state
+                $('input[name="wp_login_shield_enable_custom_redirect"]').change(function() {
+                    $('#wp_login_shield_redirect_slug').prop('disabled', !this.checked);
+                });
+                
+                // Handle enable/disable of both redirect options based on custom login state
+                $('input[name="wp_login_shield_enable_custom_login"]').change(function() {
+                    var enabled = this.checked;
+                    $('input[name="wp_login_shield_enable_custom_redirect"]').prop('disabled', !enabled);
+                    $('#wp_login_shield_redirect_slug').prop('disabled', !enabled || !$('input[name="wp_login_shield_enable_custom_redirect"]').prop('checked'));
+                });
+            });
+        </script>
         <?php
     }
 
@@ -404,6 +453,21 @@ class WP_LoginShield_Admin {
     }
 
     /**
+     * Sanitize redirect slug
+     */
+    public function sanitize_redirect_slug($input) {
+        // Clean the input
+        $sanitized_input = sanitize_title($input);
+        
+        // If empty, use the default
+        if (empty($sanitized_input)) {
+            return '404';
+        }
+        
+        return $sanitized_input;
+    }
+
+    /**
      * Enqueue admin scripts
      *
      * @param string $hook The current admin page
@@ -469,6 +533,13 @@ class WP_LoginShield_Admin {
                                 <th scope="row">Custom Login Path</th>
                                 <td>
                                     <?php $this->login_path_field_callback(); ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <th scope="row">Redirect Settings</th>
+                                <td>
+                                    <?php $this->redirect_settings_field_callback(); ?>
                                 </td>
                             </tr>
                             
