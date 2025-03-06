@@ -36,47 +36,39 @@
             }
         });
         
-        // SIMPLIFIED TOGGLE FUNCTIONALITY
-        // Handle collapsible cards
-        $('.wp-login-shield-card-header .handlediv').on('click', function() {
-            var $button = $(this);
-            var $card = $button.closest('.wp-login-shield-card');
-            var $body = $card.find('.wp-login-shield-card-body');
+        // Initialize sortable
+        if ($('.wp-login-shield-sortable').length) {
+            $('.wp-login-shield-sortable').sortable({
+                handle: '.wp-login-shield-card-header',
+                placeholder: 'wp-login-shield-sortable-placeholder',
+                opacity: 0.7
+            });
+        }
+        
+        // Toggle card body
+        $('.handlediv').on('click', function() {
+            var $this = $(this);
+            var $body = $this.closest('.wp-login-shield-card').find('.wp-login-shield-card-body');
+            var isExpanded = $this.attr('aria-expanded') === 'true';
             
-            // Toggle visibility directly with jQuery
-            $body.toggle();
+            $body.toggleClass('closed');
+            $this.attr('aria-expanded', !isExpanded);
             
-            // Update aria-expanded attribute
-            var isExpanded = $body.is(':visible');
-            $button.attr('aria-expanded', isExpanded);
-            
-            // Store state in localStorage if available
-            try {
-                var key = 'wpls_card_' + $card.index();
-                localStorage.setItem(key, isExpanded ? '1' : '0');
-            } catch (e) {
-                // Local storage might not be available
-                console.log('LocalStorage not available');
-            }
+            // Update toggle indicator
+            $this.find('.toggle-indicator').css('transform', isExpanded ? 'rotate(180deg)' : 'rotate(0deg)');
         });
         
-        // Apply initial states on page load
-        $('.wp-login-shield-card').each(function(index) {
-            var $card = $(this);
-            var $body = $card.find('.wp-login-shield-card-body');
-            var $button = $card.find('.handlediv');
+        // Initialize the toggle indicators on page load
+        $('.handlediv').each(function() {
+            var $this = $(this);
+            var isExpanded = $this.attr('aria-expanded') === 'true';
             
-            try {
-                var key = 'wpls_card_' + index;
-                var savedState = localStorage.getItem(key);
-                
-                if (savedState === '0') {
-                    $body.hide();
-                    $button.attr('aria-expanded', 'false');
-                }
-            } catch (e) {
-                // Local storage might not be available
-                console.log('LocalStorage not available for reading');
+            // Set initial rotation
+            $this.find('.toggle-indicator').css('transform', isExpanded ? 'rotate(0deg)' : 'rotate(180deg)');
+            
+            // Set initial body state
+            if (!isExpanded) {
+                $this.closest('.wp-login-shield-card').find('.wp-login-shield-card-body').addClass('closed');
             }
         });
     });

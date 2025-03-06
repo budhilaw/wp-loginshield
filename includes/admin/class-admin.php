@@ -637,11 +637,26 @@ class WP_LoginShield_Admin {
     }
 
     /**
-     * Display login tracking page
+     * Display login tracking page with a card-based UI like the Access Monitoring and Banned IPs pages
      */
     public function display_login_tracking_page() {
         if (!current_user_can('manage_options')) {
             return;
+        }
+        
+        $message = '';
+        $error = '';
+        
+        // Handle clear login attempts action
+        if (isset($_POST['wp_login_shield_clear_login_attempts']) && isset($_POST['_wpnonce']) && current_user_can('manage_options')) {
+            $nonce = sanitize_text_field($_POST['_wpnonce']);
+            
+            if (wp_verify_nonce($nonce, 'wp_login_shield_clear_login_attempts')) {
+                update_option('wp_login_shield_login_attempts', array());
+                $message = 'Login attempts have been cleared successfully.';
+            } else {
+                $error = 'Security check failed. Please try again.';
+            }
         }
         
         $login_attempts = get_option('wp_login_shield_login_attempts', array());
@@ -657,72 +672,113 @@ class WP_LoginShield_Admin {
         // Get current page items
         $attempts = array_slice($login_attempts, $offset, $per_page);
         ?>
-        <div class="wrap">
+        <div class="wrap wp-login-shield-banned-page">
             <h1>Login Tracking</h1>
-            <p>Recent login attempts to your site:</p>
             
-            <p>
-                <a href="<?php echo esc_url(admin_url('admin.php?page=wp-login-shield-tracking&export=csv')); ?>" class="button">Export to CSV</a>
-            </p>
+            <?php if (!empty($message)): ?>
+                <div class="notice notice-success is-dismissible">
+                    <p><?php echo esc_html($message); ?></p>
+                </div>
+            <?php endif; ?>
             
-            <table class="widefat striped">
-                <thead>
-                    <tr>
-                        <th>Timestamp</th>
-                        <th>Username</th>
-                        <th>Status</th>
-                        <th>IP Address</th>
-                        <th>User Agent</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php
-                    if (empty($attempts)) {
-                        echo '<tr><td colspan="5">No login attempts recorded yet.</td></tr>';
-                    } else {
-                        foreach ($attempts as $attempt) {
-                            $status_class = ($attempt['status'] === 'success') ? 'login-success' : 'login-failed';
-                            $status_text = ($attempt['status'] === 'success') ? 'Success' : 'Failed';
-                            
-                            echo '<tr class="' . esc_attr($status_class) . '">';
-                            echo '<td>' . $this->plugin->format_datetime($attempt['time']) . '</td>';
-                            echo '<td>' . esc_html($attempt['username']) . '</td>';
-                            echo '<td>' . esc_html($status_text) . '</td>';
-                            echo '<td>' . esc_html($attempt['ip']) . '</td>';
-                            echo '<td class="user-agent">' . esc_html($attempt['user_agent']) . '</td>';
-                            echo '</tr>';
-                        }
-                    }
-                    ?>
-                </tbody>
-            </table>
+            <?php if (!empty($error)): ?>
+                <div class="notice notice-error is-dismissible">
+                    <p><?php echo esc_html($error); ?></p>
+                </div>
+            <?php endif; ?>
             
-            <?php
-            if ($total_pages > 1) {
-                echo '<div class="tablenav"><div class="tablenav-pages">';
-                echo paginate_links(array(
-                    'base' => add_query_arg('paged', '%#%'),
-                    'format' => '',
-                    'prev_text' => '&laquo;',
-                    'next_text' => '&raquo;',
-                    'total' => $total_pages,
-                    'current' => $current_page,
-                ));
-                echo '</div></div>';
-            }
-            ?>
+            <div class="wp-login-shield-card">
+                <div class="wp-login-shield-card-header">
+                    <h2><span class="dashicons dashicons-chart-bar"></span> Login Tracking Tools</h2>
+                    <button type="button" class="handlediv" aria-expanded="true">
+                        <span class="screen-reader-text">Toggle panel</span>
+                        <span class="toggle-indicator" aria-hidden="true"></span>
+                    </button>
+                </div>
+                
+                <div class="wp-login-shield-card-body">
+                    <p>Manage your login attempts data:</p>
+                    <form method="post" action="" style="display: inline-block;">
+                        <?php wp_nonce_field('wp_login_shield_clear_login_attempts'); ?>
+                        <button type="submit" name="wp_login_shield_clear_login_attempts" class="button button-secondary" onclick="return confirm('Are you sure you want to clear all login attempts? This cannot be undone.');">
+                            <span class="dashicons dashicons-trash" style="margin-top: 3px; margin-right: 5px;"></span>
+                            Clear All Login Attempts
+                        </button>
+                    </form>
+                </div>
+            </div>
             
-            <?php $this->display_footer_note(); ?>
+            <div class="wp-login-shield-card">
+                <div class="wp-login-shield-card-header">
+                    <h2><span class="dashicons dashicons-list-view"></span> Recent Login Attempts</h2>
+                    <button type="button" class="handlediv" aria-expanded="true">
+                        <span class="screen-reader-text">Toggle panel</span>
+                        <span class="toggle-indicator" aria-hidden="true"></span>
+                    </button>
+                </div>
+                
+                <div class="wp-login-shield-card-body">
+                    <table class="widefat login-attempts-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Username</th>
+                                <th>Status</th>
+                                <th>IP Address</th>
+                                <th>User Agent</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            if (empty($attempts)) {
+                                echo '<tr><td colspan="5">No login attempts recorded yet.</td></tr>';
+                            } else {
+                                foreach ($attempts as $attempt) {
+                                    $status_class = ($attempt['status'] === 'success') ? 'login-success' : 'login-failed';
+                                    $status_text = ($attempt['status'] === 'success') ? 'Success' : 'Failed';
+                                    
+                                    echo '<tr>';
+                                    echo '<td>' . $this->plugin->format_datetime($attempt['time']) . '</td>';
+                                    echo '<td>' . esc_html($attempt['username']) . '</td>';
+                                    echo '<td><span class="' . esc_attr($status_class) . '">' . esc_html($status_text) . '</span></td>';
+                                    echo '<td>' . esc_html($attempt['ip']) . '</td>';
+                                    echo '<td class="user-agent-cell">' . esc_html($attempt['user_agent']) . '</td>';
+                                    echo '</tr>';
+                                }
+                            }
+                            ?>
+                        </tbody>
+                    </table>
+                    
+                    <?php if ($total_pages > 1): ?>
+                    <div class="pagination-wrapper">
+                        <div class="pagination">
+                            <?php
+                            echo paginate_links(array(
+                                'base' => add_query_arg('paged', '%#%'),
+                                'format' => '',
+                                'prev_text' => '<span class="dashicons dashicons-arrow-left-alt2"></span>',
+                                'next_text' => '<span class="dashicons dashicons-arrow-right-alt2"></span>',
+                                'total' => $total_pages,
+                                'current' => $current_page,
+                                'type' => 'list',
+                                'mid_size' => 1,
+                                'end_size' => 1,
+                                'add_args' => array(), // Prevents extra query args
+                                'add_fragment' => '',
+                            ));
+                            ?>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+            
+            <div class="wp-login-shield-footer">
+                <?php echo esc_html($this->plugin_name); ?> v<?php echo esc_html($this->version); ?> | Developed by <a href="https://budhilaw.com" target="_blank">Budhilaw</a>
+            </div>
         </div>
         <?php
-        
-        // Handle CSV export
-        if (isset($_GET['export']) && $_GET['export'] == 'csv') {
-            // Check if monitoring property exists
-            if (isset($this->plugin->monitoring)) {
-                $this->plugin->monitoring->export_login_attempts();
-            }
-        }
     }
 
     /**
@@ -790,7 +846,10 @@ class WP_LoginShield_Admin {
                     
                     <form method="post" action="" style="display: inline-block; margin-right: 10px;">
                         <?php wp_nonce_field('wp_login_shield_clear_access_logs'); ?>
-                        <button type="submit" name="wp_login_shield_clear_access_logs" class="button button-secondary" onclick="return confirm('Are you sure you want to clear all access logs? This cannot be undone.');">Clear Access Logs</button>
+                        <button type="submit" name="wp_login_shield_clear_access_logs" class="button button-secondary" onclick="return confirm('Are you sure you want to clear all access logs? This cannot be undone.');">
+                            <span class="dashicons dashicons-trash" style="margin-top: 3px; margin-right: 5px;"></span>
+                            Clear Access Logs
+                        </button>
                     </form>
                 </div>
             </div>

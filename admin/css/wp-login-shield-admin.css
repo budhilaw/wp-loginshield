@@ -160,49 +160,57 @@
 
 /* Login Tracking Page */
 .login-attempts-table {
-    table-layout: fixed;
+    border-collapse: collapse !important;
+    width: 100% !important;
+    margin-bottom: 20px !important;
 }
 
-.login-attempts-table th:first-child {
-    width: 150px;
+.login-attempts-table th {
+    background-color: #f8f9fa !important;
+    padding: 12px 15px !important;
+    text-align: left !important;
+    font-weight: 600 !important;
+    color: #1d2327 !important;
+    border-bottom: 1px solid #e2e4e7 !important;
 }
 
-.login-attempts-table th:nth-child(2) {
-    width: 120px;
+.login-attempts-table td {
+    padding: 12px 15px !important;
+    border-bottom: 1px solid #f0f0f1 !important;
+    vertical-align: middle !important;
 }
 
-.login-attempts-table th:nth-child(3) {
-    width: 120px;
+.login-attempts-table tr:hover {
+    background-color: #f6f7f7 !important;
 }
 
-.login-attempts-table th:nth-child(4) {
-    width: 80px;
-}
-
-.login-status {
-    display: inline-block;
-    padding: 3px 8px;
-    border-radius: 3px;
-    font-size: 12px;
-    text-transform: uppercase;
-    font-weight: 600;
+.login-success, .login-failed {
+    display: inline-block !important;
+    padding: 5px 10px !important;
+    border-radius: 4px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    text-align: center !important;
+    min-width: 80px !important;
 }
 
 .login-success {
-    background-color: #d1e7dd;
-    color: #0f5132;
+    background-color: #edfaef !important;
+    color: #2a7d3f !important;
+    border: 1px solid #c8e6c9 !important;
 }
 
 .login-failed {
-    background-color: #f8d7da;
-    color: #842029;
+    background-color: #fbeae5 !important;
+    color: #d63638 !important;
+    border: 1px solid #f5c2c7 !important;
 }
 
 .user-agent-cell {
-    word-break: break-word;
-    max-width: 300px;
-    font-size: 12px;
-    color: #666;
+    max-width: 300px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
 }
 
 /* Tablenav for export options */
