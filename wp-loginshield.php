@@ -22,6 +22,17 @@ if (!function_exists('wp_loginshield_protect_login')) {
     function wp_loginshield_protect_login() {
         $request_uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
         
+        // CRITICAL: Skip everything if this is not a wp-login.php request
+        if (strpos($request_uri, 'wp-login.php') === false) {
+            return;
+        }
+        
+        // Check if custom login path protection is enabled - if not, allow direct access to wp-login.php
+        $enable_custom_login = get_option('wp_login_shield_enable_custom_login', 1);
+        if (!$enable_custom_login) {
+            return; // Skip login protection if feature is disabled
+        }
+        
         // Early IP ban check if it's enabled in the database
         $ip_ban_enabled = get_option('wp_login_shield_enable_ip_ban', 0);
         if ($ip_ban_enabled) {
@@ -78,52 +89,49 @@ if (!function_exists('wp_loginshield_protect_login')) {
             }
         }
         
-        // Check if this is a direct attempt to access wp-login.php
-        if (strpos($request_uri, 'wp-login.php') !== false) {
-            // Skip protection for wp-cron.php, xmlrpc.php, and other WordPress system files
-            if (strpos($request_uri, 'wp-cron.php') !== false || 
-                strpos($request_uri, 'xmlrpc.php') !== false) {
-                return;
-            }
-            
-            // Allow special WordPress actions
-            $special_actions = array('postpass', 'logout', 'lostpassword', 'retrievepassword', 'resetpass', 'rp', 'register');
-            if (isset($_GET['action']) && in_array($_GET['action'], $special_actions)) {
-                return;
-            }
-            
-            // Check for token
-            $login_path = get_option('wp_login_shield', 'login');
-            if (isset($_GET['wls-token']) && $_GET['wls-token'] == $login_path) {
-                return;
-            }
-            
-            // Check for cookie
-            if (isset($_COOKIE['wp_loginshield_access']) && $_COOKIE['wp_loginshield_access'] == '1') {
-                return;
-            }
-            
-            // Check if user is already logged in (via WordPress auth cookie)
-            if (isset($_COOKIE[LOGGED_IN_COOKIE])) {
-                return;
-            }
-            
-            // If we get here, block access with direct redirect (no WordPress functions needed)
-            header('HTTP/1.1 404 Not Found');
-            header('Status: 404 Not Found');
-            // Simple HTML for a 404 page
-            echo '<!DOCTYPE html><html><head><title>404 Not Found</title></head><body>';
-            echo '<h1>404 Not Found</h1><p>The page you requested could not be found.</p>';
-            echo '</body></html>';
-            exit;
+        // Skip protection for wp-cron.php, xmlrpc.php, and other WordPress system files
+        if (strpos($request_uri, 'wp-cron.php') !== false || 
+            strpos($request_uri, 'xmlrpc.php') !== false) {
+            return;
         }
+        
+        // Allow special WordPress actions
+        $special_actions = array('postpass', 'logout', 'lostpassword', 'retrievepassword', 'resetpass', 'rp', 'register');
+        if (isset($_GET['action']) && in_array($_GET['action'], $special_actions)) {
+            return;
+        }
+        
+        // Check for token
+        $login_path = get_option('wp_login_shield', 'login');
+        if (isset($_GET['wls-token']) && $_GET['wls-token'] == $login_path) {
+            return;
+        }
+        
+        // Check for cookie
+        if (isset($_COOKIE['wp_loginshield_access']) && $_COOKIE['wp_loginshield_access'] == '1') {
+            return;
+        }
+        
+        // Check if user is already logged in (via WordPress auth cookie)
+        if (isset($_COOKIE[LOGGED_IN_COOKIE])) {
+            return;
+        }
+        
+        // If we get here, block access with direct redirect (no WordPress functions needed)
+        header('HTTP/1.1 404 Not Found');
+        header('Status: 404 Not Found');
+        // Simple HTML for a 404 page
+        echo '<!DOCTYPE html><html><head><title>404 Not Found</title></head><body>';
+        echo '<h1>404 Not Found</h1><p>The page you requested could not be found.</p>';
+        echo '</body></html>';
+        exit;
     }
     
     // Execute the protection function directly, before any WordPress hooks
     wp_loginshield_protect_login();
 }
 
-define('WP_LOGINSHIELD_VERSION', '1.0.1');
+define('WP_LOGINSHIELD_VERSION', '1.0.2');
 define('WP_LOGINSHIELD_PLUGIN_DIR', plugin_dir_path(__FILE__));
 
 // Include the core class

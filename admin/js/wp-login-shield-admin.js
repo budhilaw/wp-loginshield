@@ -15,8 +15,8 @@
             $('#preview-slug').text(value);
         });
 
-        // Handle confirmation for unbanning IPs
-        $('.unban-ip-button').on('click', function(e) {
+        // Handle confirmation dialogs for various actions
+        $('.unban-ip-link').on('click', function(e) {
             if (!confirm(wpLoginShieldAdmin.confirmUnban)) {
                 e.preventDefault();
             }
@@ -69,6 +69,17 @@
             // Set initial body state
             if (!isExpanded) {
                 $this.closest('.wp-login-shield-card').find('.wp-login-shield-card-body').addClass('closed');
+            }
+        });
+
+        // Toggle login path input field based on checkbox
+        $('input[name="wp_login_shield_enable_custom_login"]').on('change', function() {
+            var $loginPathInput = $('input[name="wp_login_shield"]');
+            
+            if ($(this).is(':checked')) {
+                $loginPathInput.prop('disabled', false);
+            } else {
+                $loginPathInput.prop('disabled', true);
             }
         });
     });

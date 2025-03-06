@@ -40,6 +40,13 @@ class WP_LoginShield_Protection {
     protected $login_access_monitoring_enabled = false;
 
     /**
+     * Custom login enabled
+     *
+     * @var bool
+     */
+    protected $custom_login_enabled = true;
+
+    /**
      * Reference to the IP Management module
      *
      * @var WP_LoginShield_IP_Management
@@ -63,6 +70,7 @@ class WP_LoginShield_Protection {
         $this->login_path = get_option('wp_login_shield', $this->default_path);
         $this->ip_whitelist_enabled = get_option('wp_login_shield_enable_ip_whitelist', 0);
         $this->login_access_monitoring_enabled = get_option('wp_login_shield_enable_login_access_monitoring', 0);
+        $this->custom_login_enabled = get_option('wp_login_shield_enable_custom_login', 1);
         
         $this->ip_management = $ip_management;
         $this->monitoring = $monitoring;
@@ -72,14 +80,17 @@ class WP_LoginShield_Protection {
      * Initialize hooks
      */
     public function init() {
-        // Filter to change login URL
-        add_filter('site_url', array($this, 'change_login_url'), 10, 4);
-        
-        // Hook to block wp-login.php access
-        add_action('plugins_loaded', array($this, 'block_wp_login'), 1);
-        
-        // Add rewrite rules
-        add_action('init', array($this, 'add_rewrite_rules'));
+        // Only add login URL customization if feature is enabled
+        if ($this->custom_login_enabled) {
+            // Filter to change login URL
+            add_filter('site_url', array($this, 'change_login_url'), 10, 4);
+            
+            // Hook to block wp-login.php access
+            add_action('plugins_loaded', array($this, 'block_wp_login'), 1);
+            
+            // Add rewrite rules
+            add_action('init', array($this, 'add_rewrite_rules'));
+        }
     }
 
     /**
@@ -92,6 +103,11 @@ class WP_LoginShield_Protection {
      * @return string Modified URL
      */
     public function change_login_url($url, $path, $scheme, $blog_id) {
+        // Return original URL if custom login is disabled
+        if (!$this->custom_login_enabled) {
+            return $url;
+        }
+        
         if ($path == 'wp-login.php') {
             // Don't change URL if user is already logged in
             if (is_user_logged_in()) {
@@ -117,6 +133,11 @@ class WP_LoginShield_Protection {
      * Block direct access to wp-login.php
      */
     public function block_wp_login() {
+        // Exit early if custom login is disabled
+        if (!$this->custom_login_enabled) {
+            return;
+        }
+        
         global $pagenow;
         
         // Get request information
@@ -234,12 +255,15 @@ class WP_LoginShield_Protection {
      * Add rewrite rules for our custom login path
      */
     public function add_rewrite_rules() {
-        add_rewrite_rule($this->login_path . '/?$', 'index.php?' . $this->login_path . '=1', 'top');
-        
-        // Flush rewrite rules only once after activation
-        if (get_option('wp_login_shield_flush_rewrite_rules', 0) == 1) {
-            flush_rewrite_rules();
-            update_option('wp_login_shield_flush_rewrite_rules', 0);
+        // Only add rewrite rule if custom login is enabled
+        if ($this->custom_login_enabled) {
+            add_rewrite_rule($this->login_path . '/?$', 'index.php?' . $this->login_path . '=1', 'top');
+            
+            // Flush rewrite rules only once after activation
+            if (get_option('wp_login_shield_flush_rewrite_rules', 0) == 1) {
+                flush_rewrite_rules();
+                update_option('wp_login_shield_flush_rewrite_rules', 0);
+            }
         }
     }
 } 

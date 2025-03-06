@@ -93,6 +93,7 @@ class WP_LoginShield_Admin {
      */
     public function register_settings() {
         register_setting('wp_login_shield_settings', 'wp_login_shield', array($this, 'sanitize_login_path'));
+        register_setting('wp_login_shield_settings', 'wp_login_shield_enable_custom_login', 'intval');
         register_setting('wp_login_shield_settings', 'wp_login_shield_enable_ip_ban');
         register_setting('wp_login_shield_settings', 'wp_login_shield_enable_login_tracking');
         register_setting('wp_login_shield_settings', 'wp_login_shield_timezone');
@@ -178,10 +179,17 @@ class WP_LoginShield_Admin {
      */
     public function login_path_field_callback() {
         $login_path = get_option('wp_login_shield', 'login');
+        $enable_custom_login = get_option('wp_login_shield_enable_custom_login', 1);
         ?>
-        <input type="text" name="wp_login_shield" value="<?php echo esc_attr($login_path); ?>" class="regular-text">
+        <label>
+            <input type="checkbox" name="wp_login_shield_enable_custom_login" value="1" <?php checked($enable_custom_login, 1); ?>>
+            Enable custom login path
+        </label>
+        <p>
+            <input type="text" name="wp_login_shield" value="<?php echo esc_attr($login_path); ?>" class="regular-text" <?php disabled($enable_custom_login, 0); ?>>
+        </p>
         <p class="description">
-            Enter the custom path for the login page (e.g., "secret-login" would make your login page <?php echo esc_html(site_url('/secret-login')); ?>)
+            When enabled, the standard wp-login.php page will be protected. Enter the custom path for the login page (e.g., "secret-login" would make your login page <?php echo esc_html(site_url('/secret-login')); ?>)
         </p>
         <?php
     }
@@ -305,21 +313,28 @@ class WP_LoginShield_Admin {
     }
 
     /**
-     * Sanitize login path
+     * Update login path settings and handle custom login changes
      *
-     * @param string $path The login path to sanitize
-     * @return string Sanitized login path
+     * @param string $input The login path input value
+     * @return string The sanitized login path
      */
-    public function sanitize_login_path($path) {
+    public function sanitize_login_path($input) {
+        // Get the current login path for comparison
+        $old_login_path = get_option('wp_login_shield', 'login');
+        
+        // Check if the custom login enable/disable setting was changed
+        $old_enable_custom_login = get_option('wp_login_shield_enable_custom_login', 1);
+        $new_enable_custom_login = isset($_POST['wp_login_shield_enable_custom_login']) ? 1 : 0;
+        
         // Trim whitespace
-        $path = trim($path);
+        $input = trim($input);
         
         // Replace any non-alphanumeric characters (except dash and underscore) with nothing
-        $path = preg_replace('/[^a-zA-Z0-9\-\_]/', '', $path);
+        $sanitized_input = preg_replace('/[^a-zA-Z0-9\-\_]/', '', $input);
         
         // Fallback to default if empty
-        if (empty($path)) {
-            $path = 'login';
+        if (empty($sanitized_input)) {
+            $sanitized_input = 'login';
             add_settings_error(
                 'wp_login_shield',
                 'wp_login_shield_error',
@@ -335,7 +350,7 @@ class WP_LoginShield_Admin {
             'tag', 'post', 'page', 'comment'
         );
         
-        if (in_array(strtolower($path), $reserved_terms)) {
+        if (in_array(strtolower($sanitized_input), $reserved_terms)) {
             add_settings_error(
                 'wp_login_shield',
                 'wp_login_shield_error',
@@ -344,10 +359,15 @@ class WP_LoginShield_Admin {
             );
             
             // Return the previously saved value
-            return get_option('wp_login_shield', 'login');
+            return $old_login_path;
         }
         
-        return $path;
+        // Schedule a rewrite rules flush if login path changed or custom login setting changed
+        if ($sanitized_input !== $old_login_path || $old_enable_custom_login !== $new_enable_custom_login) {
+            update_option('wp_login_shield_flush_rewrite_rules', 1);
+        }
+        
+        return $sanitized_input;
     }
 
     /**
