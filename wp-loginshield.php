@@ -4,7 +4,7 @@
  * Plugin URI: https://budhilaw.com/plugins/wp-loginshield
  * Description: Enhance WordPress security by customizing the login path, blocking brute force attacks, and monitoring login attempts.
  * Version: 1.0.3
- * Author: Budhilaw
+ * Author: Ericsson Budhilaw
  * Author URI: https://budhilaw.com
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html

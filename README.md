@@ -6,6 +6,8 @@
 
 WP Login Shield provides comprehensive protection for your WordPress login page, safeguarding your site against unauthorized access attempts and brute force attacks.
 
+![About WP Login Shield](assets/About.png)
+
 ### Key Features
 
 - **Custom Login Path**: Change your WordPress login URL to prevent automated attacks
@@ -37,11 +39,19 @@ After installation:
 1. Navigate to **WP Login Shield** in your WordPress admin menu
 2. Configure the following settings:
 
+![Login Protection Settings](assets/Login-Protection-Settings.png)
+
 ### Custom Login Path
 
 - Enable/disable the custom login path feature
 - Set a custom path for your login page (e.g., "secret-login")
 - Your login page will be accessible at: `yourdomain.com/secret-login`
+
+### Custom Redirect
+
+- Enable/disable custom redirect for unauthorized login attempts
+- Set a specific post or page slug to redirect unauthorized login attempts
+- Your visitors will be redirected to this page instead of seeing a generic 404 page
 
 ### IP Banning
 
@@ -90,7 +100,12 @@ https://yourdomain.com/wp-login.php?wls-token=your-custom-path
 ### Viewing Security Logs
 
 1. Navigate to **WP Login Shield** → **Login Tracking** to view login attempts
+
+![Login Tracking](assets/Login-Tracking.png)
+
 2. Navigate to **WP Login Shield** → **Access Monitoring** to view login page access attempts
+
+![Access Monitoring](assets/Access-Monitoring.png)
 
 ### Managing Banned IPs
 
@@ -98,6 +113,8 @@ Navigate to **WP Login Shield** → **Banned IPs** to:
 - View all currently banned IP addresses
 - Unban specific IP addresses
 - Clear all bans
+
+![Banned IPs](assets/Banned-IPs.png)
 
 ## FAQ
 
@@ -122,6 +139,12 @@ If you're locked out, you can disable the plugin by renaming the plugin folder v
 
 ## Changelog
 
+### 1.0.3
+- Added custom redirect option for unauthorized login attempts
+- Enhanced error handling for early protection
+- Improved URL handling for WordPress installations in subdirectories
+- Bug fixes and performance improvements
+
 ### 1.0.2
 - Enhanced UI for all plugin screens
 - Fixed pagination styling issues
@@ -138,8 +161,7 @@ If you're locked out, you can disable the plugin by renaming the plugin folder v
 
 ## Credits
 
-- Developed by [Budhilaw](https://github.com/budhilaw)
-- Icon and banner graphics by [Budhilaw](https://budhilaw.com)
+- Developed by [Ericsson Budhilaw](https://github.com/budhilaw)
 
 ## License
 

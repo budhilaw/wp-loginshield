@@ -1,5 +1,5 @@
 === WP Login Shield ===
-Contributors: budhilaw
+Contributors: Ericsson Budhilaw
 Tags: security, login, brute force, protection, custom login, login monitoring
 Requires at least: 5.0
 Tested up to: 6.4

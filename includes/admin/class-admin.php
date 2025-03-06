@@ -592,7 +592,7 @@ class WP_LoginShield_Admin {
             </form>
             
             <div class="wp-login-shield-footer">
-                <?php echo esc_html($this->plugin_name); ?> v<?php echo esc_html($this->version); ?> | Developed by <a href="https://budhilaw.com" target="_blank">Budhilaw</a>
+                <?php echo esc_html($this->plugin_name); ?> v<?php echo esc_html($this->version); ?> | Developed by <a href="https://budhilaw.com" target="_blank">Ericsson Budhilaw</a>
             </div>
         </div>
         
@@ -984,7 +984,7 @@ class WP_LoginShield_Admin {
             </div>
             
             <div class="wp-login-shield-footer">
-                <?php echo esc_html($this->plugin_name); ?> v<?php echo esc_html($this->version); ?> | Developed by <a href="https://budhilaw.com" target="_blank">Budhilaw</a>
+                <?php echo esc_html($this->plugin_name); ?> v<?php echo esc_html($this->version); ?> | Developed by <a href="https://budhilaw.com" target="_blank">Ericsson Budhilaw</a>
             </div>
         </div>
         <?php
@@ -1170,7 +1170,7 @@ class WP_LoginShield_Admin {
                         </tr>
                         <tr>
                             <th>Author:</th>
-                            <td><a href="https://budhilaw.com" target="_blank">Budhilaw</a></td>
+                            <td><a href="https://budhilaw.com" target="_blank">Ericsson Budhilaw</a></td>
                         </tr>
                     </table>
                     <p>
@@ -1238,7 +1238,7 @@ class WP_LoginShield_Admin {
             </div>
             
             <div class="wp-login-shield-footer">
-                <?php echo esc_html($this->plugin_name); ?> v<?php echo esc_html($this->version); ?> | Developed by <a href="https://budhilaw.com" target="_blank">Budhilaw</a>
+                <?php echo esc_html($this->plugin_name); ?> v<?php echo esc_html($this->version); ?> | Developed by <a href="https://budhilaw.com" target="_blank">Ericsson Budhilaw</a>
             </div>
         </div>
         <?php
