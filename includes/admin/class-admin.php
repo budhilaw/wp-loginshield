@@ -292,7 +292,7 @@ class WP_LoginShield_Admin {
         
         foreach ($timezone_list as $tz) {
             $selected = ($timezone == $tz) ? ' selected="selected"' : '';
-            echo '<option value="' . esc_attr($tz) . '"' . $selected . '>' . esc_html($tz) . '</option>';
+            echo '<option value="' . esc_attr($tz) . '"' . esc_attr($selected) . '>' . esc_html($tz) . '</option>';
         }
         
         echo '</select>';
@@ -947,7 +947,7 @@ class WP_LoginShield_Admin {
                                     $status_text = ($attempt['status'] === 'success') ? 'Success' : 'Failed';
                                     
                                     echo '<tr>';
-                                    echo '<td>' . $this->plugin->format_datetime($attempt['time']) . '</td>';
+                                    echo '<td>' . esc_html($this->plugin->format_datetime($attempt['time'])) . '</td>';
                                     echo '<td>' . esc_html($attempt['username']) . '</td>';
                                     echo '<td><span class="' . esc_attr($status_class) . '">' . esc_html($status_text) . '</span></td>';
                                     echo '<td>' . esc_html($attempt['ip']) . '</td>';
@@ -963,19 +963,14 @@ class WP_LoginShield_Admin {
                     <div class="pagination-wrapper">
                         <div class="pagination">
                             <?php
-                            echo paginate_links(array(
+                            echo wp_kses_post(paginate_links(array(
                                 'base' => add_query_arg('paged', '%#%'),
                                 'format' => '',
-                                'prev_text' => '<span class="dashicons dashicons-arrow-left-alt2"></span>',
-                                'next_text' => '<span class="dashicons dashicons-arrow-right-alt2"></span>',
-                                'total' => $total_pages,
-                                'current' => $current_page,
-                                'type' => 'list',
-                                'mid_size' => 1,
-                                'end_size' => 1,
-                                'add_args' => array(), // Prevents extra query args
-                                'add_fragment' => '',
-                            ));
+                                'prev_text' => __('&laquo;'),
+                                'next_text' => __('&raquo;'),
+                                'total' => ceil($total_items / $per_page),
+                                'current' => $current_page
+                            )));
                             ?>
                         </div>
                     </div>
@@ -1092,24 +1087,24 @@ class WP_LoginShield_Admin {
                             } else {
                                 foreach ($records as $record) {
                                     echo '<tr>';
-                                    echo '<td>' . $this->plugin->format_datetime($record['time']) . '</td>';
+                                    echo '<td>' . esc_html($this->plugin->format_datetime($record['time'])) . '</td>';
                                     echo '<td>' . esc_html($record['ip']) . '</td>';
-                                    echo '<td>' . (isset($record['request_uri']) ? esc_html($record['request_uri']) : 'Unknown') . '</td>';
+                                    echo '<td>' . esc_html($record['path']) . '</td>';
                                     echo '<td class="user-agent">' . esc_html($record['user_agent']) . '</td>';
                                     
                                     // Handle referrer display - check for all possible variations of Direct access
                                     $referrer = '';
                                     if (empty($record['http_referrer'])) {
                                         $referrer = 'Direct';
-                                    } elseif ($record['http_referrer'] === 'Direct' || $record['http_referrer'] === 'Direct access' || 
+                                    } elseif ($record['http_referrer'] === 'Direct' || $record['http_referrer'] === 'Direct access' ||
                                               strpos($record['http_referrer'], 'Direct%20access') !== false ||
                                               strpos($record['http_referrer'], 'Direct access') !== false) {
                                         $referrer = 'Direct';
                                     } else {
-                                        $referrer = '<a href="' . esc_url($record['http_referrer']) . '" target="_blank">' . esc_url($record['http_referrer']) . '</a>';
+                                        $referrer = '<a href="' . esc_url($record['http_referrer']) . '" target="_blank">' . esc_html($record['http_referrer']) . '</a>';
                                     }
                                     
-                                    echo '<td>' . $referrer . '</td>';
+                                    echo '<td>' . wp_kses_post($referrer) . '</td>';
                                     echo '</tr>';
                                 }
                             }
@@ -1121,11 +1116,11 @@ class WP_LoginShield_Admin {
                     if ($total_pages > 1) {
                         echo '<div class="pagination-wrapper">';
                         echo '<nav class="pagination" aria-label="Access logs pagination">';
-                        echo paginate_links(array(
+                        echo wp_kses_post(paginate_links(array(
                             'base' => add_query_arg('paged', '%#%'),
                             'format' => '',
-                            'prev_text' => '<span class="dashicons dashicons-arrow-left-alt2"></span>',
-                            'next_text' => '<span class="dashicons dashicons-arrow-right-alt2"></span>',
+                            'prev_text' => __('&laquo;'),
+                            'next_text' => __('&raquo;'),
                             'total' => $total_pages,
                             'current' => $current_page,
                             'type' => 'list',
@@ -1133,7 +1128,7 @@ class WP_LoginShield_Admin {
                             'end_size' => 1,
                             'add_args' => array(), // Prevents extra query args
                             'add_fragment' => '',
-                        ));
+                        )));
                         echo '</nav>';
                         echo '</div>';
                     }

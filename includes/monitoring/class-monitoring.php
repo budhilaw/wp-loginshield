@@ -141,7 +141,7 @@ class WP_LoginShield_Monitoring {
     private function add_login_record($username, $status) {
         // Get visitor IP and user agent
         $ip = $this->ip_management ? $this->ip_management->get_client_ip() : '';
-        $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : __('Unknown', 'wp-loginshield');
+        $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : __('Unknown', 'wp-login-shield');
         
         if (empty($ip)) {
             $ip = __('Unknown', 'wp-login-shield');
@@ -187,7 +187,7 @@ class WP_LoginShield_Monitoring {
             
             // Get visitor information
             $ip = $this->ip_management ? $this->ip_management->get_client_ip() : '';
-            $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : __('Unknown', 'wp-loginshield');
+            $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : __('Unknown', 'wp-login-shield');
             
             // Handle referrer properly
             $http_referrer = '';
@@ -197,8 +197,8 @@ class WP_LoginShield_Monitoring {
                 $http_referrer = $_SERVER['HTTP_REFERER'];
             }
             
-            $request_uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : __('Unknown', 'wp-loginshield');
-            $request_method = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : __('Unknown', 'wp-loginshield');
+            $request_uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : __('Unknown', 'wp-login-shield');
+            $request_method = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : __('Unknown', 'wp-login-shield');
             $remote_host = isset($_SERVER['REMOTE_HOST']) ? $_SERVER['REMOTE_HOST'] : gethostbyaddr($ip);
             
             // Check if the IP is whitelisted
@@ -306,11 +306,11 @@ class WP_LoginShield_Monitoring {
         
         // Add CSV headers
         fputcsv($output, array(
-            __('Date/Time', 'wp-loginshield'),
-            __('IP Address', 'wp-loginshield'),
-            __('Username', 'wp-loginshield'),
-            __('Status', 'wp-loginshield'),
-            __('User Agent', 'wp-loginshield')
+            __('Date/Time', 'wp-login-shield'),
+            __('IP Address', 'wp-login-shield'),
+            __('Username', 'wp-login-shield'),
+            __('Status', 'wp-login-shield'),
+            __('User Agent', 'wp-login-shield')
         ));
         
         // Add data rows

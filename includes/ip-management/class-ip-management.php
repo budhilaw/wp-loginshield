@@ -168,8 +168,8 @@ class WP_LoginShield_IP_Management {
                 $this->clear_auth_cookies();
                 
                 wp_die(
-                    __('Your IP has been temporarily banned due to too many failed login attempts.', 'wp-loginshield'),
-                    __('Access Denied', 'wp-loginshield'),
+                    __('Your IP has been temporarily banned due to too many failed login attempts.', 'wp-login-shield'),
+                    __('Access Denied', 'wp-login-shield'),
                     array('response' => 403)
                 );
             }
@@ -242,8 +242,8 @@ class WP_LoginShield_IP_Management {
         // If IP is not whitelisted, block
         if (!empty($whitelist_ips) && !in_array($ip, $whitelist_ips)) {
             wp_die(
-                __('Access Denied: Your IP address is not allowed to access this page.', 'wp-loginshield'),
-                __('Access Denied', 'wp-loginshield'),
+                    __('Access Denied: Your IP address is not allowed to access this page.', 'wp-login-shield'),
+                __('Access Denied', 'wp-login-shield'),
                 array('response' => 403)
             );
         }
