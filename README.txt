@@ -106,4 +106,43 @@ For optimal security:
 1. Use a unique, non-dictionary word for your custom login path
 2. Enable IP banning with a reasonable threshold (3-5 attempts)
 3. Regularly review login and access logs
-4. Consider whitelisting your own IP address for guaranteed access 
+4. Consider whitelisting your own IP address for guaranteed access
+
+== Privacy Policy ==
+
+WP Login Shield collects and stores data to protect your WordPress site. Here's what you should know:
+
+= Data Collected =
+
+When enabled, WP Login Shield may collect and store:
+
+* IP Addresses - Used to identify and ban repeated failed login attempts
+* Usernames - For tracking login attempts (successful and failed)
+* Timestamps - When login attempts and page accesses occur
+* User Agent Strings - Browser/device information of visitors
+* Referrer URLs - Where visitors came from before attempting access
+
+= Data Usage =
+
+This data is used solely for security purposes:
+* Identifying and blocking malicious login attempts
+* Monitoring for suspicious activity
+* Creating security logs for administrator review
+* Enforcing IP bans for brute force protection
+
+= Data Storage =
+
+* All collected data is stored in your WordPress database
+* Login attempts are limited to 500 entries to prevent database bloat
+* No data is transmitted to external servers
+
+= Data Retention =
+
+* Login and access records are stored until manually cleared by an administrator
+* Banned IP records are stored until manually removed or until the ban expires
+
+= Suggested Privacy Policy Content =
+
+If you use this plugin, consider adding the following to your site's privacy policy:
+
+"We use WP Login Shield to protect our login page from unauthorized access attempts. This plugin collects IP addresses, usernames, timestamps, and browser information when users attempt to access or log into our site. This information is stored in our database for security monitoring purposes and is not shared with third parties. IP addresses may be temporarily banned after multiple failed login attempts." 

@@ -446,17 +446,135 @@ class WP_LoginShield_Admin {
         }
         
         ?>
-        <div class="wrap">
+        <div class="wrap wp-login-shield-settings-page">
             <h1><?php echo esc_html($this->plugin_name); ?> Settings</h1>
             
             <form method="post" action="options.php">
-                <?php
-                settings_fields('wp_login_shield_settings');
-                do_settings_sections('wp_login_shield_settings');
-                submit_button();
-                ?>
+                <?php settings_fields('wp_login_shield_settings'); ?>
+                
+                <div class="wp-login-shield-card">
+                    <div class="wp-login-shield-card-header">
+                        <h2><span class="dashicons dashicons-shield"></span> Login Protection Settings</h2>
+                        <button type="button" class="handlediv" aria-expanded="true">
+                            <span class="screen-reader-text">Toggle panel</span>
+                            <span class="toggle-indicator" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                    
+                    <div class="wp-login-shield-card-body">
+                        <p class="description">Configure your login protection settings below:</p>
+                        
+                        <table class="form-table" role="presentation">
+                            <tr>
+                                <th scope="row">Custom Login Path</th>
+                                <td>
+                                    <?php $this->login_path_field_callback(); ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <th scope="row">IP Banning</th>
+                                <td>
+                                    <?php $this->ip_ban_field_callback(); ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <th scope="row">Login Tracking</th>
+                                <td>
+                                    <?php $this->login_tracking_field_callback(); ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <th scope="row">Timezone</th>
+                                <td>
+                                    <?php $this->timezone_field_callback(); ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <th scope="row">Time Format</th>
+                                <td>
+                                    <?php $this->time_format_field_callback(); ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <th scope="row">IP Whitelist</th>
+                                <td>
+                                    <?php $this->ip_whitelist_field_callback(); ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <th scope="row">Login Access Monitoring</th>
+                                <td>
+                                    <?php $this->login_access_monitoring_field_callback(); ?>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <?php submit_button(); ?>
             </form>
+            
+            <div class="wp-login-shield-footer">
+                <?php echo esc_html($this->plugin_name); ?> v<?php echo esc_html($this->version); ?> | Developed by <a href="https://budhilaw.com" target="_blank">Budhilaw</a>
+            </div>
         </div>
+        
+        <script>
+            jQuery(document).ready(function($) {
+                // Handle collapsible panels
+                $('.handlediv').on('click', function() {
+                    var $button = $(this);
+                    var $card = $button.closest('.wp-login-shield-card');
+                    var $body = $card.find('.wp-login-shield-card-body');
+                    var isExpanded = $button.attr('aria-expanded') === 'true';
+                    
+                    // Toggle body visibility
+                    $body.toggleClass('closed');
+                    
+                    // Update aria-expanded attribute
+                    $button.attr('aria-expanded', !isExpanded);
+                    
+                    // Update toggle indicator
+                    $button.find('.toggle-indicator').css('transform', isExpanded ? 'rotate(180deg)' : 'rotate(0deg)');
+                    
+                    // Store state in localStorage
+                    try {
+                        var key = 'wpls_settings_card';
+                        localStorage.setItem(key, isExpanded ? '0' : '1');
+                    } catch (e) {
+                        // Local storage might not be available
+                        console.log('LocalStorage not available');
+                    }
+                });
+                
+                // Apply initial states on page load
+                $('.wp-login-shield-card').each(function() {
+                    var $card = $(this);
+                    var $body = $card.find('.wp-login-shield-card-body');
+                    var $button = $card.find('.handlediv');
+                    
+                    try {
+                        var key = 'wpls_settings_card';
+                        var savedState = localStorage.getItem(key);
+                        
+                        if (savedState === '0') {
+                            $body.addClass('closed');
+                            $button.attr('aria-expanded', 'false');
+                            $button.find('.toggle-indicator').css('transform', 'rotate(180deg)');
+                        }
+                    } catch (e) {
+                        // Local storage might not be available
+                        console.log('LocalStorage not available for reading');
+                    }
+                });
+            });
+        </script>
         <?php
     }
 
