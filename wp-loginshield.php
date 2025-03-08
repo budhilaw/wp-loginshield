@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: WP LoginShield
+ * Plugin Name: WP Login Shield
  * Plugin URI: https://budhilaw.com/plugins/wp-loginshield
  * Description: Enhance WordPress security by customizing the login path, blocking brute force attacks, and monitoring login attempts.
  * Version: 1.0.3
@@ -79,11 +79,11 @@ if (!function_exists('wp_loginshield_protect_login')) {
                 // Block if either explicitly banned or too many attempts
                 if ($explicitly_banned || $too_many_attempts) {
                     // Block the banned IP with a 403
-                    header('HTTP/1.1 403 Forbidden');
-                    echo '<!DOCTYPE html><html><head><title>403 Forbidden</title></head><body>';
-                    echo '<h1>Access Denied</h1>';
-                    echo '<p>Your IP has been temporarily banned due to too many failed login attempts.</p>';
-                    echo '</body></html>';
+                    wp_die(
+                        esc_html__('Your IP has been temporarily banned due to too many failed login attempts.', 'wp-login-shield'),
+                        esc_html__('Access Denied', 'wp-login-shield'),
+                        array('response' => 403)
+                    );
                     exit;
                 }
             }
@@ -164,4 +164,27 @@ function run_wp_login_shield() {
     $plugin = new WP_LoginShield();
     $plugin->run();
 }
-run_wp_login_shield(); 
+run_wp_login_shield();
+
+register_activation_hook(__FILE__, 'wp_login_shield_activate');
+
+/**
+ * Plugin activation hook
+ */
+function wp_login_shield_activate() {
+    // Create the login tracking table
+    require_once plugin_dir_path(__FILE__) . 'includes/db/class-login-tracking-db.php';
+    $tracking_db = new WP_LoginShield_Login_Tracking_DB();
+    $tracking_db->create_table();
+
+    // Create the banned IPs table
+    require_once plugin_dir_path(__FILE__) . 'includes/db/class-banned-ips-db.php';
+    $banned_ips_db = new WP_LoginShield_Banned_IPs_DB();
+    $banned_ips_db->create_table();
+
+    // Update rewrite rules
+    update_option('wp_login_shield_flush_rewrite_rules', 1);
+
+    // Clean up old options
+    delete_option('wp_login_shield_banned_ips');
+} 

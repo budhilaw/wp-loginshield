@@ -503,4 +503,43 @@
 .wp-login-shield-footer a:hover {
     color: #135e96 !important;
     text-decoration: underline !important;
+}
+
+.wp-login-shield-banned-page .wp-login-shield-card-body {
+    padding: 20px;
+}
+
+/* Access Monitoring Table Styles */
+.wp-login-shield-banned-page .login-attempts-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    margin-bottom: 20px;
+}
+
+.wp-login-shield-banned-page table {
+    min-width: 100%;
+    border-collapse: collapse;
+}
+
+/* Set minimum widths for columns to prevent squishing */
+.wp-login-shield-banned-page table th,
+.wp-login-shield-banned-page table td {
+    min-width: 120px;
+    padding: 8px;
+    text-align: left;
+}
+
+/* Make User Agent column wider */
+.wp-login-shield-banned-page table .user-agent {
+    min-width: 300px;
+}
+
+/* Make Accessed Path column wider */
+.wp-login-shield-banned-page table td:nth-child(3) {
+    min-width: 250px;
+}
+
+/* Make Referrer column wider */
+.wp-login-shield-banned-page table td:last-child {
+    min-width: 250px;
 } 

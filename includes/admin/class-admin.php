@@ -1,5 +1,8 @@
 <?php
 
+// Include the Login Tracking DB class
+require_once plugin_dir_path(dirname(__FILE__)) . 'db/class-login-tracking-db.php';
+
 /**
  * Admin Class
  * 
@@ -92,18 +95,102 @@ class WP_LoginShield_Admin {
      * Register plugin settings
      */
     public function register_settings() {
-        register_setting('wp_login_shield_settings', 'wp_login_shield', array($this, 'sanitize_login_path'));
-        register_setting('wp_login_shield_settings', 'wp_login_shield_enable_custom_login', 'intval');
-        register_setting('wp_login_shield_settings', 'wp_login_shield_enable_ip_ban');
-        register_setting('wp_login_shield_settings', 'wp_login_shield_enable_login_tracking');
-        register_setting('wp_login_shield_settings', 'wp_login_shield_timezone');
-        register_setting('wp_login_shield_settings', 'wp_login_shield_time_format');
-        register_setting('wp_login_shield_settings', 'wp_login_shield_enable_ip_whitelist');
-        register_setting('wp_login_shield_settings', 'wp_login_shield_whitelist_ips', array($this, 'sanitize_whitelist_ips'));
-        register_setting('wp_login_shield_settings', 'wp_login_shield_enable_login_access_monitoring');
-        register_setting('wp_login_shield_settings', 'wp_login_shield_max_login_attempts', 'intval');
-        register_setting('wp_login_shield_settings', 'wp_login_shield_redirect_slug', array($this, 'sanitize_redirect_slug'));
-        register_setting('wp_login_shield_settings', 'wp_login_shield_enable_custom_redirect', 'intval');
+        register_setting(
+            'wp_login_shield_settings', 
+            'wp_login_shield', 
+            array(
+                'sanitize_callback' => array($this, 'sanitize_login_path'),
+                'type' => 'string'
+            )
+        );
+        register_setting(
+            'wp_login_shield_settings', 
+            'wp_login_shield_enable_custom_login', 
+            array(
+                'sanitize_callback' => 'intval',
+                'type' => 'boolean'
+            )
+        );
+        register_setting(
+            'wp_login_shield_settings', 
+            'wp_login_shield_enable_ip_ban', 
+            array(
+                'sanitize_callback' => 'intval',
+                'type' => 'boolean'
+            )
+        );
+        register_setting(
+            'wp_login_shield_settings', 
+            'wp_login_shield_enable_login_tracking', 
+            array(
+                'sanitize_callback' => 'intval',
+                'type' => 'boolean'
+            )
+        );
+        register_setting(
+            'wp_login_shield_settings', 
+            'wp_login_shield_timezone', 
+            array(
+                'sanitize_callback' => 'sanitize_text_field',
+                'type' => 'string'
+            )
+        );
+        register_setting(
+            'wp_login_shield_settings', 
+            'wp_login_shield_time_format', 
+            array(
+                'sanitize_callback' => 'sanitize_text_field',
+                'type' => 'string'
+            )
+        );
+        register_setting(
+            'wp_login_shield_settings', 
+            'wp_login_shield_enable_ip_whitelist', 
+            array(
+                'sanitize_callback' => 'intval',
+                'type' => 'boolean'
+            )
+        );
+        register_setting(
+            'wp_login_shield_settings', 
+            'wp_login_shield_whitelist_ips', 
+            array(
+                'sanitize_callback' => array($this, 'sanitize_whitelist_ips'),
+                'type' => 'array'
+            )
+        );
+        register_setting(
+            'wp_login_shield_settings', 
+            'wp_login_shield_enable_login_access_monitoring', 
+            array(
+                'sanitize_callback' => 'intval',
+                'type' => 'boolean'
+            )
+        );
+        register_setting(
+            'wp_login_shield_settings', 
+            'wp_login_shield_max_login_attempts', 
+            array(
+                'sanitize_callback' => 'intval',
+                'type' => 'integer'
+            )
+        );
+        register_setting(
+            'wp_login_shield_settings', 
+            'wp_login_shield_redirect_slug', 
+            array(
+                'sanitize_callback' => array($this, 'sanitize_redirect_slug'),
+                'type' => 'string'
+            )
+        );
+        register_setting(
+            'wp_login_shield_settings', 
+            'wp_login_shield_enable_custom_redirect', 
+            array(
+                'sanitize_callback' => 'intval',
+                'type' => 'boolean'
+            )
+        );
         
         add_settings_section(
             'wp_login_shield_section',
@@ -117,7 +204,8 @@ class WP_LoginShield_Admin {
             'Custom Login Path',
             array($this, 'login_path_field_callback'),
             'wp_login_shield_settings',
-            'wp_login_shield_section'
+            'wp_login_shield_section',
+            array('label_for' => 'wp_login_shield')
         );
         
         add_settings_field(
@@ -125,7 +213,8 @@ class WP_LoginShield_Admin {
             'Redirect Settings',
             array($this, 'redirect_settings_field_callback'),
             'wp_login_shield_settings',
-            'wp_login_shield_section'
+            'wp_login_shield_section',
+            array('label_for' => 'wp_login_shield_redirect_slug')
         );
         
         add_settings_field(
@@ -133,7 +222,8 @@ class WP_LoginShield_Admin {
             'IP Banning',
             array($this, 'ip_ban_field_callback'),
             'wp_login_shield_settings',
-            'wp_login_shield_section'
+            'wp_login_shield_section',
+            array('label_for' => 'wp_login_shield_enable_ip_ban')
         );
         
         add_settings_field(
@@ -141,7 +231,8 @@ class WP_LoginShield_Admin {
             'Login Tracking',
             array($this, 'login_tracking_field_callback'),
             'wp_login_shield_settings',
-            'wp_login_shield_section'
+            'wp_login_shield_section',
+            array('label_for' => 'wp_login_shield_enable_login_tracking')
         );
         
         add_settings_field(
@@ -149,7 +240,8 @@ class WP_LoginShield_Admin {
             'Timezone',
             array($this, 'timezone_field_callback'),
             'wp_login_shield_settings',
-            'wp_login_shield_section'
+            'wp_login_shield_section',
+            array('label_for' => 'wp_login_shield_timezone')
         );
         
         add_settings_field(
@@ -157,7 +249,8 @@ class WP_LoginShield_Admin {
             'Time Format',
             array($this, 'time_format_field_callback'),
             'wp_login_shield_settings',
-            'wp_login_shield_section'
+            'wp_login_shield_section',
+            array('label_for' => 'wp_login_shield_time_format')
         );
         
         add_settings_field(
@@ -165,7 +258,8 @@ class WP_LoginShield_Admin {
             'IP Whitelist',
             array($this, 'ip_whitelist_field_callback'),
             'wp_login_shield_settings',
-            'wp_login_shield_section'
+            'wp_login_shield_section',
+            array('label_for' => 'wp_login_shield_enable_ip_whitelist')
         );
         
         add_settings_field(
@@ -173,7 +267,8 @@ class WP_LoginShield_Admin {
             'Login Access Monitoring',
             array($this, 'login_access_monitoring_field_callback'),
             'wp_login_shield_settings',
-            'wp_login_shield_section'
+            'wp_login_shield_section',
+            array('label_for' => 'wp_login_shield_enable_login_access_monitoring')
         );
     }
 
@@ -368,6 +463,12 @@ class WP_LoginShield_Admin {
      * @return string The sanitized login path
      */
     public function sanitize_login_path($input) {
+        // Add nonce verification
+        if (!isset($_POST['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'wp_login_shield_settings-options')) {
+            add_settings_error('wp_login_shield', 'nonce_error', __('Security check failed. Please try again.', 'wp-login-shield'), 'error');
+            return get_option('wp_login_shield');
+        }
+        
         // Get the current login path for comparison
         $old_login_path = get_option('wp_login_shield', 'login');
         
@@ -662,21 +763,25 @@ class WP_LoginShield_Admin {
         
         // Handle ban IP form submission
         if (isset($_POST['wp_login_shield_ban_ip']) && isset($_POST['_wpnonce']) && current_user_can('manage_options')) {
-            $nonce = sanitize_text_field($_POST['_wpnonce']);
+            $nonce = sanitize_text_field(wp_unslash($_POST['_wpnonce']));
             
             if (wp_verify_nonce($nonce, 'wp_login_shield_ban_ip')) {
-                $ip_to_ban = isset($_POST['ip_address']) ? sanitize_text_field($_POST['ip_address']) : '';
+                $ip_to_ban = isset($_POST['ip_address']) ? sanitize_text_field(wp_unslash($_POST['ip_address'])) : '';
+                $ban_duration = isset($_POST['ban_duration']) ? absint($_POST['ban_duration']) : 24;
+                $ban_reason = isset($_POST['ban_reason']) ? sanitize_text_field(wp_unslash($_POST['ban_reason'])) : 'Manual ban by administrator';
                 
                 // Validate IP address
                 if (empty($ip_to_ban)) {
                     $ban_error = 'Please enter an IP address.';
                 } elseif (!filter_var($ip_to_ban, FILTER_VALIDATE_IP)) {
                     $ban_error = 'Please enter a valid IP address.';
+                } elseif ($ban_duration < 1 || $ban_duration > 720) {
+                    $ban_error = 'Ban duration must be between 1 and 720 hours.';
                 } else {
                     // Ban the IP
                     if (isset($this->plugin) && isset($this->plugin->ip_management) && method_exists($this->plugin->ip_management, 'ban_ip')) {
-                        $this->plugin->ip_management->ban_ip($ip_to_ban);
-                        $ban_message = 'IP address ' . esc_html($ip_to_ban) . ' has been banned.';
+                        $this->plugin->ip_management->ban_ip($ip_to_ban, $ban_reason, $ban_duration);
+                        $ban_message = 'IP address ' . esc_html($ip_to_ban) . ' has been banned for ' . esc_html($ban_duration) . ' hours.';
                     } else {
                         $ban_error = 'Could not ban IP address. IP Management module not available.';
                     }
@@ -686,8 +791,8 @@ class WP_LoginShield_Admin {
         
         // Handle unban IP
         if (isset($_GET['action']) && $_GET['action'] === 'unban' && isset($_GET['ip']) && isset($_GET['_wpnonce'])) {
-            $nonce = sanitize_text_field($_GET['_wpnonce']);
-            $ip = sanitize_text_field($_GET['ip']);
+            $nonce = sanitize_text_field(wp_unslash($_GET['_wpnonce']));
+            $ip = sanitize_text_field(wp_unslash($_GET['ip']));
             
             if (wp_verify_nonce($nonce, 'wp_login_shield_unban_ip_' . $ip)) {
                 if (isset($this->plugin) && isset($this->plugin->ip_management) && method_exists($this->plugin->ip_management, 'unban_ip')) {
@@ -738,6 +843,14 @@ class WP_LoginShield_Admin {
                                 <label for="ip_address">IP Address</label>
                                 <input type="text" id="ip_address" name="ip_address" placeholder="e.g., 192.168.1.1" required>
                             </div>
+                            <div class="field-group">
+                                <label for="ban_duration">Ban Duration (hours)</label>
+                                <input type="number" id="ban_duration" name="ban_duration" value="24" min="1" max="720">
+                            </div>
+                            <div class="field-group">
+                                <label for="ban_reason">Reason</label>
+                                <input type="text" id="ban_reason" name="ban_reason" placeholder="Reason for ban">
+                            </div>
                             <div class="field-group submit-group">
                                 <button type="submit" name="wp_login_shield_ban_ip" class="button button-primary ban-button">Ban IP Address</button>
                             </div>
@@ -762,36 +875,28 @@ class WP_LoginShield_Admin {
                             <tr>
                                 <th>IP Address</th>
                                 <th>Ban Date</th>
+                                <th>Expires</th>
+                                <th>Reason</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if (empty($banned_ips)): ?>
                                 <tr>
-                                    <td colspan="3">No IP addresses are currently banned.</td>
+                                    <td colspan="5">No IP addresses are currently banned.</td>
                                 </tr>
                             <?php else: ?>
-                                <?php foreach ($banned_ips as $ip => $data): 
-                                    // Skip if not a valid data structure
-                                    if (!is_array($data)) {
-                                        continue;
-                                    }
-                                    
-                                    // Get ban information
-                                    $is_banned = isset($data['is_banned']) && $data['is_banned'] === true;
-                                    
-                                    // Skip if not banned
-                                    if (!$is_banned) {
-                                        continue;
-                                    }
-                                    
-                                    $ban_date = isset($data['ban_date']) ? $data['ban_date'] : (isset($data['last_attempt']) ? $data['last_attempt'] : 0);
+                                <?php foreach ($banned_ips as $record): 
+                                    $banned_at = strtotime($record['banned_at']);
+                                    $banned_until = strtotime($record['banned_until']);
                                 ?>
                                     <tr>
-                                        <td><?php echo esc_html($ip); ?></td>
-                                        <td><?php echo esc_html(date('Y-m-d H:i:s', $ban_date)); ?></td>
+                                        <td><?php echo esc_html($record['ip_address']); ?></td>
+                                        <td><?php echo esc_html($this->plugin->format_datetime($banned_at)); ?></td>
+                                        <td><?php echo esc_html($this->plugin->format_datetime($banned_until)); ?></td>
+                                        <td><?php echo esc_html($record['reason']); ?></td>
                                         <td>
-                                            <a href="<?php echo esc_url(wp_nonce_url(add_query_arg(array('action' => 'unban', 'ip' => $ip), admin_url('admin.php?page=wp-login-shield-banned')), 'wp_login_shield_unban_ip_' . $ip)); ?>" class="button button-small button-unban">Unban</a>
+                                            <a href="<?php echo esc_url(wp_nonce_url(add_query_arg(array('action' => 'unban', 'ip' => $record['ip_address']), admin_url('admin.php?page=wp-login-shield-banned')), 'wp_login_shield_unban_ip_' . $record['ip_address'])); ?>" class="button button-small button-unban">Unban</a>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -858,28 +963,28 @@ class WP_LoginShield_Admin {
         
         // Handle clear login attempts action
         if (isset($_POST['wp_login_shield_clear_login_attempts']) && isset($_POST['_wpnonce']) && current_user_can('manage_options')) {
-            $nonce = sanitize_text_field($_POST['_wpnonce']);
+            $nonce = sanitize_text_field(wp_unslash($_POST['_wpnonce']));
             
             if (wp_verify_nonce($nonce, 'wp_login_shield_clear_login_attempts')) {
-                update_option('wp_login_shield_login_attempts', array());
+                $tracking_db = new WP_LoginShield_Login_Tracking_DB();
+                $tracking_db->clear_all_records();
                 $message = 'Login attempts have been cleared successfully.';
             } else {
                 $error = 'Security check failed. Please try again.';
             }
         }
         
-        $login_attempts = get_option('wp_login_shield_login_attempts', array());
-        $login_attempts = array_reverse($login_attempts); // Most recent first
+        // Get tracking DB instance
+        $tracking_db = new WP_LoginShield_Login_Tracking_DB();
         
         // Prepare pagination
-        $total_items = count($login_attempts);
         $per_page = 20;
-        $current_page = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
-        $offset = ($current_page - 1) * $per_page;
+        $current_page = isset($_GET['paged']) ? max(1, intval(wp_unslash($_GET['paged']))) : 1;
+        $total_items = $tracking_db->get_total_records();
         $total_pages = ceil($total_items / $per_page);
         
         // Get current page items
-        $attempts = array_slice($login_attempts, $offset, $per_page);
+        $records = $tracking_db->get_records($per_page, $current_page);
         ?>
         <div class="wrap wp-login-shield-banned-page">
             <h1>Login Tracking</h1>
@@ -939,19 +1044,19 @@ class WP_LoginShield_Admin {
                         </thead>
                         <tbody>
                             <?php
-                            if (empty($attempts)) {
+                            if (empty($records)) {
                                 echo '<tr><td colspan="5">No login attempts recorded yet.</td></tr>';
                             } else {
-                                foreach ($attempts as $attempt) {
-                                    $status_class = ($attempt['status'] === 'success') ? 'login-success' : 'login-failed';
-                                    $status_text = ($attempt['status'] === 'success') ? 'Success' : 'Failed';
+                                foreach ($records as $record) {
+                                    $status_class = ($record['status'] === 'success') ? 'login-success' : 'login-failed';
+                                    $status_text = ($record['status'] === 'success') ? 'Success' : 'Failed';
                                     
                                     echo '<tr>';
-                                    echo '<td>' . esc_html($this->plugin->format_datetime($attempt['time'])) . '</td>';
-                                    echo '<td>' . esc_html($attempt['username']) . '</td>';
+                                    echo '<td>' . esc_html($this->plugin->format_datetime(strtotime($record['time']))) . '</td>';
+                                    echo '<td>' . esc_html($record['username']) . '</td>';
                                     echo '<td><span class="' . esc_attr($status_class) . '">' . esc_html($status_text) . '</span></td>';
-                                    echo '<td>' . esc_html($attempt['ip']) . '</td>';
-                                    echo '<td class="user-agent-cell">' . esc_html($attempt['user_agent']) . '</td>';
+                                    echo '<td>' . esc_html($record['ip']) . '</td>';
+                                    echo '<td class="user-agent-cell">' . esc_html($record['user_agent']) . '</td>';
                                     echo '</tr>';
                                 }
                             }
@@ -966,9 +1071,9 @@ class WP_LoginShield_Admin {
                             echo wp_kses_post(paginate_links(array(
                                 'base' => add_query_arg('paged', '%#%'),
                                 'format' => '',
-                                'prev_text' => __('&laquo;'),
-                                'next_text' => __('&raquo;'),
-                                'total' => ceil($total_items / $per_page),
+                                'prev_text' => __('&laquo;', 'wp-login-shield'),
+                                'next_text' => __('&raquo;', 'wp-login-shield'),
+                                'total' => $total_pages,
                                 'current' => $current_page
                             )));
                             ?>
@@ -998,7 +1103,7 @@ class WP_LoginShield_Admin {
         
         // Handle clear log action
         if (isset($_POST['wp_login_shield_clear_access_logs']) && isset($_POST['_wpnonce']) && current_user_can('manage_options')) {
-            $nonce = sanitize_text_field($_POST['_wpnonce']);
+            $nonce = sanitize_text_field(wp_unslash($_POST['_wpnonce']));
             
             if (wp_verify_nonce($nonce, 'wp_login_shield_clear_access_logs')) {
                 update_option('wp_login_shield_access_records', array());
@@ -1014,7 +1119,7 @@ class WP_LoginShield_Admin {
         // Prepare pagination
         $total_items = count($access_records);
         $per_page = 20;
-        $current_page = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
+        $current_page = isset($_GET['paged']) ? max(1, intval(wp_unslash($_GET['paged']))) : 1;
         $offset = ($current_page - 1) * $per_page;
         $total_pages = ceil($total_items / $per_page);
         
@@ -1070,48 +1175,50 @@ class WP_LoginShield_Admin {
                 <div class="wp-login-shield-card-body">
                     <p>Below are the most recent attempts to access your login page:</p>
                     
-                    <table class="widefat striped">
-                        <thead>
-                            <tr>
-                                <th>Timestamp</th>
-                                <th>IP Address</th>
-                                <th>Accessed Path</th>
-                                <th>User Agent</th>
-                                <th>Referrer</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            if (empty($records)) {
-                                echo '<tr><td colspan="5">No access records found.</td></tr>';
-                            } else {
-                                foreach ($records as $record) {
-                                    echo '<tr>';
-                                    echo '<td>' . esc_html($this->plugin->format_datetime($record['time'])) . '</td>';
-                                    echo '<td>' . esc_html($record['ip']) . '</td>';
-                                    echo '<td>' . esc_html($record['path']) . '</td>';
-                                    echo '<td class="user-agent">' . esc_html($record['user_agent']) . '</td>';
-                                    
-                                    // Handle referrer display - check for all possible variations of Direct access
-                                    $referrer = '';
-                                    if (empty($record['http_referrer'])) {
-                                        $referrer = 'Direct';
-                                    } elseif ($record['http_referrer'] === 'Direct' || $record['http_referrer'] === 'Direct access' ||
-                                              strpos($record['http_referrer'], 'Direct%20access') !== false ||
-                                              strpos($record['http_referrer'], 'Direct access') !== false) {
-                                        $referrer = 'Direct';
-                                    } else {
-                                        $referrer = '<a href="' . esc_url($record['http_referrer']) . '" target="_blank">' . esc_html($record['http_referrer']) . '</a>';
+                    <div class="login-attempts-table-wrapper">
+                        <table class="widefat striped">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>IP Address</th>
+                                    <th>Accessed Path</th>
+                                    <th>User Agent</th>
+                                    <th>Referrer</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                if (empty($records)) {
+                                    echo '<tr><td colspan="5">No access records found.</td></tr>';
+                                } else {
+                                    foreach ($records as $record) {
+                                        echo '<tr>';
+                                        echo '<td>' . esc_html($this->plugin->format_datetime($record['time'])) . '</td>';
+                                        echo '<td>' . esc_html($record['ip']) . '</td>';
+                                        echo '<td>' . esc_html($record['request_uri']) . '</td>';
+                                        echo '<td class="user-agent">' . esc_html($record['user_agent']) . '</td>';
+                                        
+                                        // Handle referrer display - check for all possible variations of Direct access
+                                        $referrer = '';
+                                        if (empty($record['http_referrer'])) {
+                                            $referrer = 'Direct';
+                                        } elseif ($record['http_referrer'] === 'Direct' || $record['http_referrer'] === 'Direct access' ||
+                                                  strpos($record['http_referrer'], 'Direct%20access') !== false ||
+                                                  strpos($record['http_referrer'], 'Direct access') !== false) {
+                                            $referrer = 'Direct';
+                                        } else {
+                                            $referrer = '<a href="' . esc_url($record['http_referrer']) . '" target="_blank">' . esc_html($record['http_referrer']) . '</a>';
+                                        }
+                                        
+                                        echo '<td>' . wp_kses_post($referrer) . '</td>';
+                                        echo '</tr>';
                                     }
-                                    
-                                    echo '<td>' . wp_kses_post($referrer) . '</td>';
-                                    echo '</tr>';
                                 }
-                            }
-                            ?>
-                        </tbody>
-                    </table>
-                    
+                                ?>
+                            </tbody>
+                        </table>
+                    </div>
+
                     <?php
                     if ($total_pages > 1) {
                         echo '<div class="pagination-wrapper">';
@@ -1119,8 +1226,8 @@ class WP_LoginShield_Admin {
                         echo wp_kses_post(paginate_links(array(
                             'base' => add_query_arg('paged', '%#%'),
                             'format' => '',
-                            'prev_text' => __('&laquo;'),
-                            'next_text' => __('&raquo;'),
+                            'prev_text' => __('&laquo;', 'wp-login-shield'),
+                            'next_text' => __('&raquo;', 'wp-login-shield'),
                             'total' => $total_pages,
                             'current' => $current_page,
                             'type' => 'list',
