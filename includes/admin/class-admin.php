@@ -85,9 +85,25 @@ class WP_LoginShield_Admin {
             'dashicons-shield'
         );
         add_submenu_page('wp-login-shield', 'Settings', 'Settings', 'manage_options', 'wp-login-shield', array($this, 'display_settings_page'));
-        add_submenu_page('wp-login-shield', 'Banned IPs', 'Banned IPs', 'manage_options', 'wp-login-shield-banned', array($this, 'display_banned_ips_page'));
-        add_submenu_page('wp-login-shield', 'Login Tracking', 'Login Tracking', 'manage_options', 'wp-login-shield-tracking', array($this, 'display_login_tracking_page'));
-        add_submenu_page('wp-login-shield', 'Access Monitoring', 'Access Monitoring', 'manage_options', 'wp-login-shield-monitoring', array($this, 'display_access_monitoring_page'));
+        
+        // Only add Banned IPs page if the IP ban feature is enabled
+        $ip_ban_enabled = get_option('wp_login_shield_enable_ip_ban', 0);
+        if ($ip_ban_enabled) {
+            add_submenu_page('wp-login-shield', 'Banned IPs', 'Banned IPs', 'manage_options', 'wp-login-shield-banned', array($this, 'display_banned_ips_page'));
+        }
+        
+        // Only add Login Tracking page if the login tracking feature is enabled
+        $login_tracking_enabled = get_option('wp_login_shield_enable_login_tracking', 0);
+        if ($login_tracking_enabled) {
+            add_submenu_page('wp-login-shield', 'Login Tracking', 'Login Tracking', 'manage_options', 'wp-login-shield-tracking', array($this, 'display_login_tracking_page'));
+        }
+        
+        // Only add Access Monitoring page if the feature is enabled
+        $login_access_monitoring_enabled = get_option('wp_login_shield_enable_login_access_monitoring', 0);
+        if ($login_access_monitoring_enabled) {
+            add_submenu_page('wp-login-shield', 'Access Monitoring', 'Access Monitoring', 'manage_options', 'wp-login-shield-monitoring', array($this, 'display_access_monitoring_page'));
+        }
+        
         add_submenu_page('wp-login-shield', 'About', 'About', 'manage_options', 'wp-login-shield-about', array($this, 'display_about_page'));
     }
 
