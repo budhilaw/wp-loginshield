@@ -26,7 +26,7 @@ class WP_LoginShield_Admin {
      *
      * @var string
      */
-    protected $version = '1.0.1';
+    protected $version = '1.0.4';
 
     /**
      * Default timezone
