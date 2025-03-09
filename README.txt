@@ -1,9 +1,9 @@
 === WP Login Shield ===
 Contributors: Ericsson Budhilaw
-Tags: security, login, brute force, protection, custom login, login monitoring
+Tags: security, login, brute force, custom login, login monitoring
 Requires at least: 5.0
-Tested up to: 6.4
-Stable tag: 1.0.2
+Tested up to: 6.7
+Stable tag: 1.0.4
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -69,6 +69,19 @@ You can manage banned IPs through the WP Login Shield -> Banned IPs page in your
 5. Access monitoring page
 
 == Changelog ==
+
+= 1.0.4 =
+* Improved user interface by hiding admin menu items for disabled features
+* Admin menu now dynamically shows only enabled feature pages
+* "Banned IPs" page only visible when IP banning is enabled
+* "Login Tracking" page only visible when login tracking is enabled
+* "Access Monitoring" page only visible when login access monitoring is enabled
+
+= 1.0.3 =
+* Fixed minor security vulnerabilities
+* Improved user agent detection
+* Enhanced security with better error handling
+* Code cleanup and performance optimizations
 
 = 1.0.2 =
 * Enhanced UI for all plugin screens

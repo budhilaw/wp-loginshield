@@ -9,6 +9,9 @@
  * @package    WP_LoginShield
  */
 
+// Include the Banned IPs DB class
+require_once plugin_dir_path(dirname(__FILE__)) . 'db/class-banned-ips-db.php';
+
 class WP_LoginShield_IP_Management {
 
     /**
@@ -33,12 +36,20 @@ class WP_LoginShield_IP_Management {
     protected $whitelist_ips = array();
 
     /**
+     * Banned IPs database instance
+     *
+     * @var WP_LoginShield_Banned_IPs_DB
+     */
+    public $banned_ips_db;
+
+    /**
      * Initialize the class
      */
     public function __construct() {
         $this->ip_whitelist_enabled = get_option('wp_login_shield_enable_ip_whitelist', 0);
         $this->whitelist_ips = get_option('wp_login_shield_whitelist_ips', array());
         $this->max_login_attempts = get_option('wp_login_shield_max_login_attempts', 3);
+        $this->banned_ips_db = new WP_LoginShield_Banned_IPs_DB();
     }
 
     /**
@@ -47,7 +58,6 @@ class WP_LoginShield_IP_Management {
     public function init() {
         // Add login failed hook if IP banning is enabled
         if (get_option('wp_login_shield_enable_ip_ban', 0)) {
-            add_action('wp_login_failed', array($this, 'handle_failed_login'));
             add_filter('authenticate', array($this, 'check_banned_ip'), 1, 3);
             
             // Add additional hooks for checking banned IPs
@@ -56,6 +66,12 @@ class WP_LoginShield_IP_Management {
             
             // Also catch XML-RPC login attempts
             add_filter('xmlrpc_login_error', array($this, 'check_banned_ip_xmlrpc'), 10, 2);
+
+            // Schedule cleanup of expired bans
+            if (!wp_next_scheduled('wp_login_shield_cleanup_expired_bans')) {
+                wp_schedule_event(time(), 'hourly', 'wp_login_shield_cleanup_expired_bans');
+            }
+            add_action('wp_login_shield_cleanup_expired_bans', array($this, 'cleanup_expired_bans'));
         }
         
         // Check IP whitelist if enabled
@@ -94,7 +110,7 @@ class WP_LoginShield_IP_Management {
                 foreach (explode(',', $_SERVER[$key]) as $ip) {
                     $ip = trim($ip);
                     
-                    // Validate IP address - don't filter out private IPs to ensure we get the actual client IP
+                    // Validate IP address
                     if (filter_var($ip, FILTER_VALIDATE_IP) !== false) {
                         return $ip;
                     }
@@ -107,60 +123,13 @@ class WP_LoginShield_IP_Management {
     }
 
     /**
-     * Handle failed login attempts
-     * 
-     * @param string $username The username that was used in the failed login
-     */
-    public function handle_failed_login($username) {
-        // Get visitor IP
-        $ip = $this->get_client_ip();
-        
-        if (empty($ip)) {
-            return;
-        }
-        
-        // Get current banned IPs
-        $banned_ips = get_option('wp_login_shield_banned_ips', array());
-        
-        // Make sure banned_ips is an array
-        if (!is_array($banned_ips)) {
-            $banned_ips = array();
-        }
-        
-        // If IP already exists, increment attempts
-        if (isset($banned_ips[$ip]) && is_array($banned_ips[$ip])) {
-            // Only increment if not explicitly banned
-            if (!isset($banned_ips[$ip]['is_banned']) || $banned_ips[$ip]['is_banned'] !== true) {
-                $banned_ips[$ip]['attempts'] = isset($banned_ips[$ip]['attempts']) && is_numeric($banned_ips[$ip]['attempts']) 
-                    ? $banned_ips[$ip]['attempts'] + 1 : 1;
-                $banned_ips[$ip]['last_attempt'] = time();
-                
-                // Auto-set explicit ban if max attempts reached
-                if ($banned_ips[$ip]['attempts'] >= $this->max_login_attempts) {
-                    $banned_ips[$ip]['is_banned'] = true;
-                    $banned_ips[$ip]['ban_date'] = time();
-                }
-            }
-        } else {
-            // First attempt for this IP
-            $banned_ips[$ip] = array(
-                'attempts' => 1,
-                'last_attempt' => time()
-            );
-        }
-        
-        // Update the option
-        update_option('wp_login_shield_banned_ips', $banned_ips);
-    }
-
-    /**
      * Check if the current IP is banned
      * 
      * @param null|WP_User|WP_Error $user User object or error
      * @param string $username Username
      * @return null|WP_User|WP_Error
      */
-    public function check_banned_ip() {
+    public function check_banned_ip($user = null, $username = '') {
         // Safely check if IP is banned
         try {
             if ($this->is_ip_banned()) {
@@ -168,8 +137,8 @@ class WP_LoginShield_IP_Management {
                 $this->clear_auth_cookies();
                 
                 wp_die(
-                    __('Your IP has been temporarily banned due to too many failed login attempts.', 'wp-loginshield'),
-                    __('Access Denied', 'wp-loginshield'),
+                    esc_html__('Your IP has been temporarily banned.', 'wp-login-shield'),
+                    esc_html__('Access Denied', 'wp-login-shield'),
                     array('response' => 403)
                 );
             }
@@ -180,7 +149,42 @@ class WP_LoginShield_IP_Management {
             }
         }
         
-        return null;
+        return $user;
+    }
+
+    /**
+     * Check if an IP is banned
+     * 
+     * @param string $ip IP address to check. If empty, checks current visitor's IP.
+     * @return bool True if IP is banned, false otherwise
+     */
+    public function is_ip_banned($ip = '') {
+        // If no IP provided, get current visitor's IP
+        if (empty($ip)) {
+            $ip = $this->get_client_ip();
+        }
+        
+        if (empty($ip)) {
+            return false;
+        }
+
+        return (bool) $this->banned_ips_db->is_ip_banned($ip);
+    }
+
+    /**
+     * Ban an IP address
+     * 
+     * @param string $ip IP address to ban
+     * @param string $reason Reason for the ban
+     * @param int $duration Duration in hours
+     * @return bool True if IP was banned, false otherwise
+     */
+    public function ban_ip($ip, $reason = 'Too many failed login attempts', $duration = 24) {
+        if (empty($ip) || !filter_var($ip, FILTER_VALIDATE_IP)) {
+            return false;
+        }
+        
+        return (bool) $this->banned_ips_db->add_banned_ip($ip, $reason, $duration);
     }
 
     /**
@@ -194,26 +198,62 @@ class WP_LoginShield_IP_Management {
             return false;
         }
         
+        return (bool) $this->banned_ips_db->remove_banned_ip($ip);
+    }
+
+    /**
+     * Get all banned IPs with their information
+     * 
+     * @param bool $active_only Whether to return only currently active bans
+     * @return array Banned IPs with their information
+     */
+    public function get_banned_ips($active_only = false) {
+        return $this->banned_ips_db->get_banned_ips($active_only);
+    }
+
+    /**
+     * Clean up expired bans
+     */
+    public function cleanup_expired_bans() {
+        $this->banned_ips_db->cleanup_expired_bans();
+    }
+
+    /**
+     * Handle failed login attempt
+     * 
+     * @param string $username Username that failed to log in
+     */
+    public function handle_failed_login($username) {
+        $ip = $this->get_client_ip();
+        
+        if (empty($ip)) {
+            return;
+        }
+        
+        // Check if IP is already banned
+        if ($this->is_ip_banned($ip)) {
+            return;
+        }
+        
+        // Get current failed attempts count
         $banned_ips = get_option('wp_login_shield_banned_ips', array());
+        $attempts = isset($banned_ips[$ip]['attempts']) ? (int)$banned_ips[$ip]['attempts'] : 0;
+        $attempts++;
         
-        if (!is_array($banned_ips)) {
-            $banned_ips = array();
-            update_option('wp_login_shield_banned_ips', $banned_ips);
-            return false;
+        // Update or create the record
+        if (!isset($banned_ips[$ip])) {
+            $banned_ips[$ip] = array();
         }
         
-        if (isset($banned_ips[$ip])) {
-            if (!is_array($banned_ips[$ip])) {
-                $banned_ips[$ip] = array();
-            }
-            
-            // Reset attempts and remove explicit ban flag
-            $banned_ips[$ip]['attempts'] = 0;
-            $banned_ips[$ip]['is_banned'] = false;
-            update_option('wp_login_shield_banned_ips', $banned_ips);
-            return true;
+        $banned_ips[$ip]['attempts'] = $attempts;
+        $banned_ips[$ip]['last_attempt'] = time();
+        
+        // Ban if max attempts reached
+        if ($attempts >= $this->max_login_attempts) {
+            $this->ban_ip($ip, 'Exceeded maximum login attempts');
         }
-        return false;
+        
+        update_option('wp_login_shield_banned_ips', $banned_ips);
     }
 
     /**
@@ -242,90 +282,11 @@ class WP_LoginShield_IP_Management {
         // If IP is not whitelisted, block
         if (!empty($whitelist_ips) && !in_array($ip, $whitelist_ips)) {
             wp_die(
-                __('Access Denied: Your IP address is not allowed to access this page.', 'wp-loginshield'),
-                __('Access Denied', 'wp-loginshield'),
+                esc_html__('Access Denied: Your IP address is not allowed to access this page.', 'wp-login-shield'),
+                esc_html__('Access Denied', 'wp-login-shield'),
                 array('response' => 403)
             );
         }
-    }
-
-    /**
-     * Sanitize whitelist IPs input
-     * 
-     * @param string|array $input The unsanitized input
-     * @return array Sanitized IPs
-     */
-    public function sanitize_whitelist_ips($input) {
-        if (empty($input)) {
-            return array();
-        }
-        
-        if (is_string($input)) {
-            $ips = preg_split('/\r\n|\r|\n/', $input);
-        } else if (is_array($input)) {
-            $ips = $input;
-        } else {
-            return array();
-        }
-        
-        $valid_ips = array();
-        foreach ($ips as $ip) {
-            $ip = trim($ip);
-            if (!empty($ip) && filter_var($ip, FILTER_VALIDATE_IP)) {
-                $valid_ips[] = $ip;
-            }
-        }
-        
-        return $valid_ips;
-    }
-
-    /**
-     * Check if an IP is banned
-     * 
-     * @param string $ip IP address to check. If empty, checks current visitor's IP.
-     * @return bool True if IP is banned, false otherwise
-     */
-    public function is_ip_banned($ip = '') {
-        // If no IP provided, get current visitor's IP
-        if (empty($ip)) {
-            $ip = $this->get_client_ip();
-        }
-        
-        if (empty($ip)) {
-            return false;
-        }
-        
-        // Get banned IPs
-        $banned_ips = get_option('wp_login_shield_banned_ips', array());
-        
-        if (!is_array($banned_ips)) {
-            return false;
-        }
-        
-        // First check: is this IP explicitly banned?
-        if (isset($banned_ips[$ip]) && is_array($banned_ips[$ip]) && 
-            isset($banned_ips[$ip]['is_banned']) && $banned_ips[$ip]['is_banned'] === true) {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('WP Login Shield - IP is explicitly banned: ' . $ip);
-            }
-            
-            return true;
-        }
-        
-        // Second check: does the IP have too many failed attempts?
-        if (isset($banned_ips[$ip]) && is_array($banned_ips[$ip])) {
-            // Check if the IP has exceeded max login attempts
-            if (isset($banned_ips[$ip]['attempts']) && is_numeric($banned_ips[$ip]['attempts']) && $banned_ips[$ip]['attempts'] >= $this->max_login_attempts) {
-                if (defined('WP_DEBUG') && WP_DEBUG) {
-                    error_log('WP Login Shield - IP is banned due to too many attempts: ' . $ip);
-                }
-                
-                // IP is banned due to attempts
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**
@@ -352,67 +313,5 @@ class WP_LoginShield_IP_Management {
         
         // Clear any custom plugin cookies
         setcookie('wp_loginshield_access', ' ', time() - YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN);
-    }
-
-    /**
-     * Ban an IP address
-     * 
-     * @param string $ip IP address to ban
-     * @return bool True if IP was banned, false otherwise
-     */
-    public function ban_ip($ip) {
-        if (empty($ip) || !filter_var($ip, FILTER_VALIDATE_IP)) {
-            return false;
-        }
-        
-        // Get current banned IPs
-        $banned_ips = get_option('wp_login_shield_banned_ips', array());
-        
-        // Set the IP as banned
-        if (isset($banned_ips[$ip])) {
-            // Update existing record
-            $banned_ips[$ip]['is_banned'] = true;
-            $banned_ips[$ip]['ban_date'] = time();
-        } else {
-            // Create new record
-            $banned_ips[$ip] = array(
-                'attempts' => $this->max_login_attempts, // Set to max to ensure it's banned
-                'last_attempt' => time(),
-                'is_banned' => true,
-                'ban_date' => time()
-            );
-        }
-        
-        // Update the option
-        update_option('wp_login_shield_banned_ips', $banned_ips);
-        
-        return true;
-    }
-
-    /**
-     * Get all banned IPs with their information
-     * 
-     * @param bool $active_only Whether to return only currently active bans
-     * @return array Banned IPs with their information
-     */
-    public function get_banned_ips($active_only = false) {
-        $banned_ips = get_option('wp_login_shield_banned_ips', array());
-        
-        if (!is_array($banned_ips)) {
-            return array();
-        }
-        
-        // If we only want active bans, filter out expired ones
-        if ($active_only) {
-            foreach ($banned_ips as $ip => $data) {
-                // Skip if not explicitly banned
-                if (!isset($data['is_banned']) || $data['is_banned'] !== true) {
-                    unset($banned_ips[$ip]);
-                    continue;
-                }
-            }
-        }
-        
-        return $banned_ips;
     }
 } 
