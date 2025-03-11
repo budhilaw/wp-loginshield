@@ -89,7 +89,7 @@ class WP_LoginShield {
      *
      * @var string
      */
-    protected $version = '1.0.1';
+    protected $version = '1.0.4';
 
     /**
      * Admin class instance
