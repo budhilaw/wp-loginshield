@@ -15,6 +15,7 @@ WP Login Shield provides comprehensive protection for your WordPress login page,
 - **Login Tracking**: Monitor all login attempts with detailed information
 - **Access Monitoring**: Record all attempts to access your login page
 - **IP Whitelisting**: Allow only specific IP addresses to access your login page
+- **Custom Redirects**: Configure custom redirects for both unauthorized access and after logout
 
 ## Installation
 
@@ -47,11 +48,17 @@ After installation:
 - Set a custom path for your login page (e.g., "secret-login")
 - Your login page will be accessible at: `yourdomain.com/secret-login`
 
-### Custom Redirect
+### Redirect Settings
 
+#### Blocked Access Redirect
 - Enable/disable custom redirect for unauthorized login attempts
 - Set a specific post or page slug to redirect unauthorized login attempts
 - Your visitors will be redirected to this page instead of seeing a generic 404 page
+
+#### Logout Redirect
+- Enable/disable custom redirect after user logout
+- Set a specific post or page slug where users will be redirected after logging out
+- Perfect for directing users to a thank you page or back to your homepage
 
 ### IP Banning
 
@@ -82,6 +89,7 @@ For optimal security:
 3. Regularly review login and access logs
 4. Consider whitelisting your own IP address for guaranteed access
 5. Use strong passwords for all users
+6. Set appropriate redirect paths for both blocked access and logout
 
 ## Usage
 
@@ -138,6 +146,13 @@ Yes, each security feature (custom login path, IP banning, login tracking, etc.)
 If you're locked out, you can disable the plugin by renaming the plugin folder via FTP/SFTP or your hosting control panel.
 
 ## Changelog
+
+### 1.0.4
+- Added custom redirect option for after logout
+- Added custom redirect option for unauthorized login attempts
+- Enhanced error handling for early protection
+- Improved URL handling for WordPress installations in subdirectories
+- Bug fixes and performance improvements
 
 ### 1.0.3
 - Added custom redirect option for unauthorized login attempts

@@ -207,6 +207,22 @@ class WP_LoginShield_Admin {
                 'type' => 'boolean'
             )
         );
+        register_setting(
+            'wp_login_shield_settings', 
+            'wp_login_shield_logout_redirect_slug', 
+            array(
+                'sanitize_callback' => array($this, 'sanitize_redirect_slug'),
+                'type' => 'string'
+            )
+        );
+        register_setting(
+            'wp_login_shield_settings', 
+            'wp_login_shield_enable_logout_redirect', 
+            array(
+                'sanitize_callback' => 'intval',
+                'type' => 'boolean'
+            )
+        );
         
         add_settings_section(
             'wp_login_shield_section',
@@ -322,32 +338,57 @@ class WP_LoginShield_Admin {
         $redirect_slug = get_option('wp_login_shield_redirect_slug', '404');
         $enable_custom_redirect = get_option('wp_login_shield_enable_custom_redirect', 0);
         $enable_custom_login = get_option('wp_login_shield_enable_custom_login', 1);
+        $logout_redirect_slug = get_option('wp_login_shield_logout_redirect_slug', '');
+        $enable_logout_redirect = get_option('wp_login_shield_enable_logout_redirect', 0);
         ?>
-        <label>
-            <input type="checkbox" name="wp_login_shield_enable_custom_redirect" value="1" <?php checked($enable_custom_redirect, 1); ?> <?php disabled($enable_custom_login, 0); ?>>
-            Enable custom redirect for unauthorized login attempts
-        </label>
-        <p>
-            <label for="wp_login_shield_redirect_slug">Redirect Slug:</label>
-            <input type="text" id="wp_login_shield_redirect_slug" name="wp_login_shield_redirect_slug" value="<?php echo esc_attr($redirect_slug); ?>" class="regular-text" <?php disabled(($enable_custom_login && $enable_custom_redirect) ? 0 : 1, 1); ?>>
-        </p>
-        <p class="description">
-            Enter the slug for where users should be redirected when they try to access wp-login.php directly.<br>
-            Default is "404" which shows a 404 page. You can enter a post or page slug (e.g., "no-access") to redirect to that content instead.<br>
-            When custom redirect is disabled, users will see a standard 404 page.
-        </p>
+        <div class="redirect-settings">
+            <h4 style="margin-top: 0px !important; padding-top: 0px !important;">Blocked Access Redirect</h4>
+            <label>
+                <input type="checkbox" name="wp_login_shield_enable_custom_redirect" value="1" <?php checked($enable_custom_redirect, 1); ?> <?php disabled($enable_custom_login, 0); ?>>
+                Enable custom redirect for unauthorized login attempts
+            </label>
+            <p>
+                <label for="wp_login_shield_redirect_slug">Redirect Slug:</label>
+                <input type="text" id="wp_login_shield_redirect_slug" name="wp_login_shield_redirect_slug" value="<?php echo esc_attr($redirect_slug); ?>" class="regular-text" <?php disabled(($enable_custom_login && $enable_custom_redirect) ? 0 : 1, 1); ?>>
+            </p>
+            <p class="description">
+                Enter the slug for where users should be redirected when they try to access wp-login.php directly.<br>
+                Default is "404" which shows a 404 page. You can enter a post or page slug (e.g., "no-access") to redirect to that content instead.<br>
+                When custom redirect is disabled, users will see a standard 404 page.
+            </p>
+
+            <h4 style="margin-top: 20px;">Logout Redirect</h4>
+            <label>
+                <input type="checkbox" name="wp_login_shield_enable_logout_redirect" value="1" <?php checked($enable_logout_redirect, 1); ?> <?php disabled($enable_custom_login, 0); ?>>
+                Enable custom redirect after logout
+            </label>
+            <p>
+                <label for="wp_login_shield_logout_redirect_slug">Logout Redirect Slug:</label>
+                <input type="text" id="wp_login_shield_logout_redirect_slug" name="wp_login_shield_logout_redirect_slug" value="<?php echo esc_attr($logout_redirect_slug); ?>" class="regular-text" <?php disabled(($enable_custom_login && $enable_logout_redirect) ? 0 : 1, 1); ?>>
+            </p>
+            <p class="description">
+                Enter the slug for where users should be redirected after logging out.<br>
+                You can enter a post or page slug (e.g., "thank-you" or "home") to redirect to that content after logout.
+            </p>
+        </div>
         <script type="text/javascript">
             jQuery(document).ready(function($) {
-                // Handle enable/disable of redirect slug field based on checkbox state
+                // Handle enable/disable of redirect slug fields based on checkbox states
                 $('input[name="wp_login_shield_enable_custom_redirect"]').change(function() {
                     $('#wp_login_shield_redirect_slug').prop('disabled', !this.checked);
+                });
+                
+                $('input[name="wp_login_shield_enable_logout_redirect"]').change(function() {
+                    $('#wp_login_shield_logout_redirect_slug').prop('disabled', !this.checked);
                 });
                 
                 // Handle enable/disable of both redirect options based on custom login state
                 $('input[name="wp_login_shield_enable_custom_login"]').change(function() {
                     var enabled = this.checked;
                     $('input[name="wp_login_shield_enable_custom_redirect"]').prop('disabled', !enabled);
+                    $('input[name="wp_login_shield_enable_logout_redirect"]').prop('disabled', !enabled);
                     $('#wp_login_shield_redirect_slug').prop('disabled', !enabled || !$('input[name="wp_login_shield_enable_custom_redirect"]').prop('checked'));
+                    $('#wp_login_shield_logout_redirect_slug').prop('disabled', !enabled || !$('input[name="wp_login_shield_enable_logout_redirect"]').prop('checked'));
                 });
             });
         </script>

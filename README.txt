@@ -1,6 +1,6 @@
 === WP Login Shield ===
 Contributors: Ericsson Budhilaw
-Tags: security, login, brute force, custom login, login monitoring
+Tags: security, login, brute force, custom login, login monitoring, custom redirect
 Requires at least: 5.0
 Tested up to: 6.7
 Stable tag: 1.0.4
@@ -21,12 +21,14 @@ WP Login Shield provides comprehensive protection for your WordPress login page,
 * **Login Tracking**: Monitor all login attempts to your WordPress site with detailed information including timestamp, username, IP address, and user agent.
 * **Access Monitoring**: Record all attempts to access your login page, even without login attempts, to detect reconnaissance activities.
 * **IP Whitelisting**: Allow only specific IP addresses to access your login page for maximum security.
+* **Custom Redirects**: Configure custom redirects for both unauthorized access attempts and after user logout.
 
 = How It Works =
 
 1. **Custom Login Protection**: When enabled, the standard wp-login.php page is protected and only accessible through your custom login path (e.g., /secret-login).
 2. **Brute Force Prevention**: The plugin tracks failed login attempts and can automatically ban IPs that exceed the specified limit.
 3. **Comprehensive Monitoring**: All login and access attempts are logged with detailed information for security analysis.
+4. **Flexible Redirects**: Customize where users are sent after logout and where unauthorized users are redirected when attempting to access protected pages.
 
 = Pro-level Security for Free =
 
@@ -50,7 +52,7 @@ Yes, WP Login Shield is designed to complement other security plugins. It focuse
 
 = Can I disable certain features? =
 
-Yes, each security feature (custom login path, IP banning, login tracking, etc.) can be enabled or disabled individually.
+Yes, each security feature (custom login path, IP banning, login tracking, custom redirects, etc.) can be enabled or disabled individually.
 
 = What happens if I get locked out? =
 
@@ -64,18 +66,22 @@ You can manage banned IPs through the WP Login Shield -> Banned IPs page in your
 
 1. Main settings page
 2. Custom login path configuration
-3. Banned IPs management
-4. Login tracking logs
-5. Access monitoring page
+3. Redirect settings configuration
+4. Banned IPs management
+5. Login tracking logs
+6. Access monitoring page
 
 == Changelog ==
 
 = 1.0.4 =
+* Added custom redirect option for after logout
+* Added custom redirect option for unauthorized login attempts
 * Improved user interface by hiding admin menu items for disabled features
 * Admin menu now dynamically shows only enabled feature pages
 * "Banned IPs" page only visible when IP banning is enabled
 * "Login Tracking" page only visible when login tracking is enabled
 * "Access Monitoring" page only visible when login access monitoring is enabled
+* Enhanced error handling and security improvements
 
 = 1.0.3 =
 * Fixed minor security vulnerabilities
@@ -99,6 +105,9 @@ You can manage banned IPs through the WP Login Shield -> Banned IPs page in your
 
 == Upgrade Notice ==
 
+= 1.0.4 =
+This update adds custom redirect options for both unauthorized access and after logout, along with various UI improvements and security enhancements.
+
 = 1.0.2 =
 This update improves the user interface, fixes pagination styling, and enhances overall plugin performance.
 
@@ -110,16 +119,20 @@ This update improves stability and fixes various minor bugs.
 After installation, follow these steps to configure WP Login Shield:
 
 1. **Custom Login Path**: Enable or disable this feature and set a custom path for your login page.
-2. **IP Banning**: Enable automatic IP banning and set the maximum number of failed login attempts before banning.
-3. **Login Tracking**: Enable tracking of all login attempts to monitor security events.
-4. **IP Whitelisting**: Add trusted IP addresses that will always have access to the login page.
-5. **Access Monitoring**: Enable monitoring of all login page access attempts.
+2. **Redirect Settings**:
+   * Configure where unauthorized users are redirected when attempting to access protected pages
+   * Set a custom redirect location for users after they log out
+3. **IP Banning**: Enable automatic IP banning and set the maximum number of failed login attempts before banning.
+4. **Login Tracking**: Enable tracking of all login attempts to monitor security events.
+5. **IP Whitelisting**: Add trusted IP addresses that will always have access to the login page.
+6. **Access Monitoring**: Enable monitoring of all login page access attempts.
 
 For optimal security:
 1. Use a unique, non-dictionary word for your custom login path
 2. Enable IP banning with a reasonable threshold (3-5 attempts)
 3. Regularly review login and access logs
 4. Consider whitelisting your own IP address for guaranteed access
+5. Set appropriate redirect paths for both blocked access and logout
 
 == Privacy Policy ==
 

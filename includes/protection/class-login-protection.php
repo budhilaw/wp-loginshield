@@ -33,11 +33,25 @@ class WP_LoginShield_Protection {
     protected $redirect_slug = '404';
 
     /**
+     * The redirect slug to use after logout
+     *
+     * @var string
+     */
+    protected $logout_redirect_slug = '';
+
+    /**
      * Whether to use custom redirect or default 404
      *
      * @var bool
      */
     protected $enable_custom_redirect = false;
+
+    /**
+     * Whether to use custom redirect after logout
+     *
+     * @var bool
+     */
+    protected $enable_logout_redirect = false;
 
     /**
      * IP whitelist enabled
@@ -83,13 +97,18 @@ class WP_LoginShield_Protection {
     public function __construct($ip_management = null, $monitoring = null) {
         $this->login_path = get_option('wp_login_shield', $this->default_path);
         $this->redirect_slug = get_option('wp_login_shield_redirect_slug', '404');
+        $this->logout_redirect_slug = get_option('wp_login_shield_logout_redirect_slug', '');
         $this->enable_custom_redirect = get_option('wp_login_shield_enable_custom_redirect', 0);
+        $this->enable_logout_redirect = get_option('wp_login_shield_enable_logout_redirect', 0);
         $this->ip_whitelist_enabled = get_option('wp_login_shield_enable_ip_whitelist', 0);
         $this->login_access_monitoring_enabled = get_option('wp_login_shield_enable_login_access_monitoring', 0);
         $this->custom_login_enabled = get_option('wp_login_shield_enable_custom_login', 1);
         
         $this->ip_management = $ip_management;
         $this->monitoring = $monitoring;
+
+        // Add logout redirect filter
+        add_filter('logout_url', array($this, 'modify_logout_url'), 10, 2);
     }
 
     /**
@@ -167,6 +186,20 @@ class WP_LoginShield_Protection {
             return site_url($this->login_path, $scheme);
         }
         return $url;
+    }
+
+    /**
+     * Modify logout URL to include redirect parameter
+     *
+     * @param string $logout_url The logout URL
+     * @param string $redirect The redirect URL
+     * @return string Modified logout URL
+     */
+    public function modify_logout_url($logout_url, $redirect) {
+        if ($this->enable_logout_redirect && !empty($this->logout_redirect_slug)) {
+            $redirect = site_url($this->logout_redirect_slug);
+        }
+        return add_query_arg('redirect_to', urlencode($redirect), $logout_url);
     }
 
     /**
