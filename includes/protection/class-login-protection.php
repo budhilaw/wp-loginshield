@@ -223,8 +223,13 @@ class WP_LoginShield_Protection {
             exit;
         }
         
-        // Handle direct access to wp-login.php
-        if (strpos($request_uri, 'wp-login.php') !== false) {
+        // Handle direct access to wp-admin and wp-login.php
+        if (strpos($request_uri, 'wp-admin') !== false || strpos($request_uri, 'wp-login.php') !== false) {
+            // Skip protection for admin-ajax.php and admin-post.php
+            if (strpos($request_uri, 'admin-ajax.php') !== false || strpos($request_uri, 'admin-post.php') !== false) {
+                return;
+            }
+            
             // Check if we should allow access
             $has_valid_token = isset($_GET['wls-token']) && $_GET['wls-token'] == $this->login_path && 
                               isset($_GET['_wpnonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'wp_login_shield_token');
@@ -248,10 +253,15 @@ class WP_LoginShield_Protection {
                 
                 // Handle redirect based on settings
                 if ($this->enable_custom_redirect && $this->redirect_slug !== '404') {
-                    wp_redirect(home_url($this->redirect_slug));
-                } else {
-                    wp_redirect(home_url('404'));
+                    wp_safe_redirect(site_url($this->redirect_slug));
+                    exit;
                 }
+                
+                // Default to 404
+                global $wp_query;
+                $wp_query->set_404();
+                status_header(404);
+                get_template_part(404);
                 exit;
             }
             
