@@ -224,6 +224,16 @@ class WP_LoginShield_Admin {
             )
         );
         
+        // Cookie lifespan setting
+        register_setting(
+            'wp_login_shield_settings', 
+            'wp_login_shield_cookie_lifespan', 
+            array(
+                'sanitize_callback' => 'sanitize_text_field',
+                'type' => 'string'
+            )
+        );
+        
         add_settings_section(
             'wp_login_shield_section',
             'Login Protection Settings',
@@ -302,6 +312,16 @@ class WP_LoginShield_Admin {
             'wp_login_shield_section',
             array('label_for' => 'wp_login_shield_enable_login_access_monitoring')
         );
+        
+        // Add cookie lifespan field
+        add_settings_field(
+            'wp_login_shield_cookie_lifespan',
+            'Cookie Lifespan',
+            array($this, 'cookie_lifespan_field_callback'),
+            'wp_login_shield_settings',
+            'wp_login_shield_section',
+            array('label_for' => 'wp_login_shield_cookie_lifespan')
+        );
     }
 
     /**
@@ -374,16 +394,16 @@ class WP_LoginShield_Admin {
         <script type="text/javascript">
             jQuery(document).ready(function($) {
                 // Handle enable/disable of redirect slug fields based on checkbox states
-                $('input[name="wp_login_shield_enable_custom_redirect"]').change(function() {
+                $('input[name="wp_login_shield_enable_custom_redirect"]').on('change', function() {
                     $('#wp_login_shield_redirect_slug').prop('disabled', !this.checked);
                 });
                 
-                $('input[name="wp_login_shield_enable_logout_redirect"]').change(function() {
+                $('input[name="wp_login_shield_enable_logout_redirect"]').on('change', function() {
                     $('#wp_login_shield_logout_redirect_slug').prop('disabled', !this.checked);
                 });
                 
                 // Handle enable/disable of both redirect options based on custom login state
-                $('input[name="wp_login_shield_enable_custom_login"]').change(function() {
+                $('input[name="wp_login_shield_enable_custom_login"]').on('change', function() {
                     var enabled = this.checked;
                     $('input[name="wp_login_shield_enable_custom_redirect"]').prop('disabled', !enabled);
                     $('input[name="wp_login_shield_enable_logout_redirect"]').prop('disabled', !enabled);
@@ -509,6 +529,32 @@ class WP_LoginShield_Admin {
         </label>
         <p class="description">
             When enabled, all attempts to access your login page will be recorded, even if they don't attempt to log in.
+        </p>
+        <?php
+    }
+
+    /**
+     * Cookie lifespan field callback
+     */
+    public function cookie_lifespan_field_callback() {
+        $cookie_lifespan = get_option('wp_login_shield_cookie_lifespan', '24');
+        
+        // Define the lifespan options (in hours)
+        $lifespan_options = array(
+            '1' => '1 Hour',
+            '24' => '24 Hours (1 Day)',
+            '72' => '72 Hours (3 Days)',
+            '168' => '168 Hours (1 Week)',
+            '720' => '720 Hours (30 Days/1 Month)'
+        );
+        ?>
+        <select name="wp_login_shield_cookie_lifespan" id="wp_login_shield_cookie_lifespan">
+            <?php foreach ($lifespan_options as $value => $label) : ?>
+                <option value="<?php echo esc_attr($value); ?>" <?php selected($cookie_lifespan, $value); ?>><?php echo esc_html($label); ?></option>
+            <?php endforeach; ?>
+        </select>
+        <p class="description">
+            Choose how long the login cookie should remain valid after accessing the custom login page.
         </p>
         <?php
     }
@@ -740,6 +786,13 @@ class WP_LoginShield_Admin {
                                 <th scope="row">Login Access Monitoring</th>
                                 <td>
                                     <?php $this->login_access_monitoring_field_callback(); ?>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <th scope="row">Cookie Lifespan</th>
+                                <td>
+                                    <?php $this->cookie_lifespan_field_callback(); ?>
                                 </td>
                             </tr>
                         </table>

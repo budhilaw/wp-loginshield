@@ -40,6 +40,13 @@ class WP_LoginShield_Protection {
     protected $logout_redirect_slug = '';
 
     /**
+     * Cookie lifespan in hours
+     *
+     * @var int
+     */
+    protected $cookie_lifespan = 24;
+
+    /**
      * Whether to use custom redirect or default 404
      *
      * @var bool
@@ -103,6 +110,9 @@ class WP_LoginShield_Protection {
         $this->ip_whitelist_enabled = get_option('wp_login_shield_enable_ip_whitelist', 0);
         $this->login_access_monitoring_enabled = get_option('wp_login_shield_enable_login_access_monitoring', 0);
         $this->custom_login_enabled = get_option('wp_login_shield_enable_custom_login', 1);
+        
+        // Load cookie lifespan setting (in hours)
+        $this->cookie_lifespan = intval(get_option('wp_login_shield_cookie_lifespan', '24'));
         
         $this->ip_management = $ip_management;
         $this->monitoring = $monitoring;
@@ -220,7 +230,9 @@ class WP_LoginShield_Protection {
         
         // Set up cookie parameters
         $cookie_name = 'wp_login_shield_' . COOKIEHASH;
-        $cookie_expiration = HOUR_IN_SECONDS;
+        
+        // Convert hours to seconds for cookie expiration
+        $cookie_expiration = $this->cookie_lifespan * HOUR_IN_SECONDS;
         
         // Handle custom login path if enabled
         if ($this->custom_login_enabled && ($request_path == $this->login_path)) {
